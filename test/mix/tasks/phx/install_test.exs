@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Phx.InstallTest do
 
       # Router artifacts
       assert igniter.rewrite.sources["lib/test_web/router.ex"]
-      assert igniter.rewrite.sources["lib/test_web/error_json.ex"]
+      assert igniter.rewrite.sources["lib/test_web/controllers/error_json.ex"]
     end
 
     test "includes all optional tasks by default" do

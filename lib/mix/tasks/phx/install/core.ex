@@ -45,6 +45,7 @@ defmodule Mix.Tasks.Phx.Install.Core do
     }
 
     igniter
+    |> add_phoenix_extension()
     |> add_phoenix_dependency()
     |> create_application_module(app_name, app_module, web_module, endpoint_module)
     |> configure_base_config(app_name, app_module, web_module, endpoint_module, secrets)
@@ -54,6 +55,10 @@ defmodule Mix.Tasks.Phx.Install.Core do
     |> configure_runtime(app_name, endpoint_module)
     |> configure_formatter()
     |> create_test_helper()
+  end
+
+  defp add_phoenix_extension(igniter) do
+    Igniter.Project.IgniterConfig.add_extension(igniter, Igniter.Extensions.Phoenix)
   end
 
   defp add_phoenix_dependency(igniter) do
