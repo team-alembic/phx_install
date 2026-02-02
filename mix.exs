@@ -26,7 +26,8 @@ defmodule PhxInstall.MixProject do
   defp deps do
     [
       {:igniter, "~> 0.5"},
-      {:ex_doc, "~> 0.34", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:phx_new, "~> 1.7", only: :test, runtime: false}
     ]
   end
 
