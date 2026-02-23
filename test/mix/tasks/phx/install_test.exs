@@ -7,7 +7,12 @@ defmodule Mix.Tasks.Phx.InstallTest do
     test "composes core, endpoint, and router tasks" do
       igniter =
         test_project()
-        |> Igniter.compose_task("phx.install", ["--no-live", "--no-assets", "--no-gettext", "--no-dashboard"])
+        |> Igniter.compose_task("phx.install", [
+          "--no-live",
+          "--no-assets",
+          "--no-gettext",
+          "--no-dashboard"
+        ])
         |> apply_igniter!()
 
       # Core artifacts
@@ -54,7 +59,12 @@ defmodule Mix.Tasks.Phx.InstallTest do
     test "works with custom app name" do
       igniter =
         test_project(app_name: :my_app)
-        |> Igniter.compose_task("phx.install", ["--no-live", "--no-assets", "--no-gettext", "--no-dashboard"])
+        |> Igniter.compose_task("phx.install", [
+          "--no-live",
+          "--no-assets",
+          "--no-gettext",
+          "--no-dashboard"
+        ])
         |> apply_igniter!()
 
       assert igniter.rewrite.sources["lib/my_app/application.ex"]

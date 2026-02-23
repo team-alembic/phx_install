@@ -25,6 +25,11 @@ defmodule PhxInstall.MixProject do
 
   defp deps do
     [
+      {:mix_audit, "~> 2.0", only: [:dev, :test]},
+      {:doctor, "~> 0.22", only: [:dev, :test]},
+      {:dialyxir, "~> 1.0", only: [:dev, :test]},
+      {:credo, "~> 1.0", only: [:dev, :test]},
+      {:ex_check, "~> 0.16", only: [:dev, :test]},
       {:igniter, "~> 0.5"},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:phx_new, "~> 1.7", only: :test, runtime: false}
@@ -34,7 +39,7 @@ defmodule PhxInstall.MixProject do
   defp package do
     [
       maintainers: ["Team Alembic"],
-      licenses: ["MIT"],
+      licenses: ["Apache-2.0"],
       links: %{"GitHub" => @source_url}
     ]
   end

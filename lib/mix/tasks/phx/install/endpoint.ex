@@ -193,7 +193,13 @@ defmodule Mix.Tasks.Phx.Install.Endpoint do
     )
   end
 
-  defp create_endpoint_module(igniter, app_name, web_module, endpoint_module, session_signing_salt) do
+  defp create_endpoint_module(
+         igniter,
+         app_name,
+         web_module,
+         endpoint_module,
+         session_signing_salt
+       ) do
     Igniter.Project.Module.find_and_update_or_create_module(
       igniter,
       endpoint_module,

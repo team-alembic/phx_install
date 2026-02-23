@@ -365,37 +365,38 @@ defmodule Mix.Tasks.Phx.Install.Ecto do
     web_module = Igniter.Libs.Phoenix.web_module(igniter)
     conn_case_module = Module.concat(web_module, ConnCase)
     data_case_module = Module.concat(app_module, DataCase)
+    setup_code = "#{inspect(data_case_module)}.setup_sandbox(tags)"
 
     case Igniter.Project.Module.find_and_update_module(
            igniter,
            conn_case_module,
-           fn zipper ->
-             setup_code = "#{inspect(data_case_module)}.setup_sandbox(tags)"
-
-             case Igniter.Code.Common.move_to(zipper, fn z ->
-                    node = Sourceror.Zipper.node(z)
-
-                    case node do
-                      {{:., _, [{:__aliases__, _, _}, :setup_sandbox]}, _, _} -> true
-                      _ -> false
-                    end
-                  end) do
-               {:ok, _} ->
-                 {:ok, zipper}
-
-               :error ->
-                 case Igniter.Code.Function.move_to_def(zipper, :setup, 1) do
-                   {:ok, setup_zipper} ->
-                     {:ok, Igniter.Code.Common.add_code(setup_zipper, setup_code)}
-
-                   :error ->
-                     {:ok, zipper}
-                 end
-             end
-           end
+           &add_sandbox_setup_to_conn_case(&1, setup_code)
          ) do
       {:ok, igniter} -> igniter
       {:error, igniter} -> igniter
+    end
+  end
+
+  defp add_sandbox_setup_to_conn_case(zipper, setup_code) do
+    case Igniter.Code.Common.move_to(zipper, &setup_sandbox_call?/1) do
+      {:ok, _} ->
+        {:ok, zipper}
+
+      :error ->
+        case Igniter.Code.Function.move_to_def(zipper, :setup, 1) do
+          {:ok, setup_zipper} ->
+            {:ok, Igniter.Code.Common.add_code(setup_zipper, setup_code)}
+
+          :error ->
+            {:ok, zipper}
+        end
+    end
+  end
+
+  defp setup_sandbox_call?(zipper) do
+    case Sourceror.Zipper.node(zipper) do
+      {{:., _, [{:__aliases__, _, _}, :setup_sandbox]}, _, _} -> true
+      _ -> false
     end
   end
 

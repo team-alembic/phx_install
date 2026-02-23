@@ -45,7 +45,6 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
 
   defp add_dashboard_route(igniter, app_name, router_module, telemetry_module) do
     dev_routes_code = """
-    # Enable LiveDashboard in development
     if Application.compile_env(#{inspect(app_name)}, :dev_routes) do
       import Phoenix.LiveDashboard.Router
 
@@ -58,43 +57,38 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
     """
 
     Igniter.Project.Module.find_and_update_module!(igniter, router_module, fn zipper ->
-      # Check if live_dashboard already exists
       case Igniter.Code.Function.move_to_function_call_in_current_scope(
              zipper,
              :live_dashboard,
              [1, 2],
-             fn call ->
-               Igniter.Code.Function.argument_equals?(call, 0, "/dashboard")
-             end
+             &Igniter.Code.Function.argument_equals?(&1, 0, "/dashboard")
            ) do
-        {:ok, _} ->
-          # Dashboard already exists
-          {:ok, zipper}
+        {:ok, _} -> {:ok, zipper}
+        :error -> insert_dashboard_route(zipper, app_name, dev_routes_code)
+      end
+    end)
+  end
 
-        :error ->
-          # Check if there's already a dev_routes block
-          case Igniter.Code.Common.move_to(zipper, fn z ->
-                 node = Sourceror.Zipper.node(z)
+  defp insert_dashboard_route(zipper, app_name, dev_routes_code) do
+    case find_dev_routes_block(zipper, app_name) do
+      {:ok, _} ->
+        {:warning,
+         Igniter.Util.Warning.formatted_warning(
+           "Found existing dev_routes block but couldn't add dashboard. Please add manually:",
+           dev_routes_code
+         )}
 
-                 case node do
-                   {:if, _, [{:compile_env, _, [_, ^app_name, :dev_routes | _]} | _]} -> true
-                   {:if, _, [{:compile_env, _, [:erlang, :binary_to_atom, [^app_name | _], _]} | _]} -> true
-                   _ -> false
-                 end
-               end) do
-            {:ok, _dev_routes_zipper} ->
-              # dev_routes block exists but no dashboard, this is complex to modify
-              # Just skip and add a warning
-              {:warning,
-               Igniter.Util.Warning.formatted_warning(
-                 "Found existing dev_routes block but couldn't add dashboard. Please add manually:",
-                 dev_routes_code
-               )}
+      :error ->
+        {:ok, Igniter.Code.Common.add_code(zipper, dev_routes_code)}
+    end
+  end
 
-            :error ->
-              # No dev_routes block, add one at the end of the module
-              {:ok, Igniter.Code.Common.add_code(zipper, dev_routes_code)}
-          end
+  defp find_dev_routes_block(zipper, app_name) do
+    Igniter.Code.Common.move_to(zipper, fn z ->
+      case Sourceror.Zipper.node(z) do
+        {:if, _, [{:compile_env, _, [_, ^app_name, :dev_routes | _]} | _]} -> true
+        {:if, _, [{:compile_env, _, [:erlang, :binary_to_atom, [^app_name | _], _]} | _]} -> true
+        _ -> false
       end
     end)
   end

@@ -57,7 +57,7 @@ defmodule Mix.Tasks.Phx.Install.Live do
       "config.exs",
       app_name,
       [endpoint_module, :live_view],
-      [signing_salt: live_signing_salt]
+      signing_salt: live_signing_salt
     )
   end
 
@@ -73,29 +73,28 @@ defmodule Mix.Tasks.Phx.Install.Live do
              zipper,
              :socket,
              [2, 3],
-             fn call ->
-               Igniter.Code.Function.argument_equals?(call, 0, "/live")
-             end
+             &Igniter.Code.Function.argument_equals?(&1, 0, "/live")
            ) do
-        {:ok, _} ->
-          {:ok, zipper}
-
-        :error ->
-          case Igniter.Code.Common.move_to(zipper, fn z ->
-                 match?({:@, _, [{:session_options, _, _}]}, Sourceror.Zipper.node(z))
-               end) do
-            {:ok, session_opts_zipper} ->
-              {:ok, Igniter.Code.Common.add_code(session_opts_zipper, socket_code)}
-
-            :error ->
-              {:warning,
-               Igniter.Util.Warning.formatted_warning(
-                 "Could not add LiveView socket to endpoint. Please add it manually after @session_options:",
-                 socket_code
-               )}
-          end
+        {:ok, _} -> {:ok, zipper}
+        :error -> insert_socket_after_session_options(zipper, socket_code)
       end
     end)
+  end
+
+  defp insert_socket_after_session_options(zipper, socket_code) do
+    case Igniter.Code.Common.move_to(zipper, fn z ->
+           match?({:@, _, [{:session_options, _, _}]}, Sourceror.Zipper.node(z))
+         end) do
+      {:ok, session_opts_zipper} ->
+        {:ok, Igniter.Code.Common.add_code(session_opts_zipper, socket_code)}
+
+      :error ->
+        {:warning,
+         Igniter.Util.Warning.formatted_warning(
+           "Could not add LiveView socket to endpoint. Please add it manually after @session_options:",
+           socket_code
+         )}
+    end
   end
 
   defp add_live_macros_to_web_module(igniter, web_module) do
@@ -127,23 +126,18 @@ defmodule Mix.Tasks.Phx.Install.Live do
 
   defp maybe_add_function(zipper, function_name, arity, code) do
     case Igniter.Code.Function.move_to_def(zipper, function_name, arity) do
-      {:ok, _} ->
-        zipper
+      {:ok, _} -> zipper
+      :error -> add_function_at_best_location(zipper, code)
+    end
+  end
 
-      :error ->
-        case Igniter.Code.Function.move_to_def(zipper, :html, 0, target: :at) do
-          {:ok, html_zipper} ->
-            Igniter.Code.Common.add_code(html_zipper, code, placement: :before)
-
-          :error ->
-            case Igniter.Code.Function.move_to_def(zipper, :verified_routes, 0, target: :at) do
-              {:ok, verified_routes_zipper} ->
-                Igniter.Code.Common.add_code(verified_routes_zipper, code, placement: :before)
-
-              :error ->
-                Igniter.Code.Common.add_code(zipper, code)
-            end
-        end
+  defp add_function_at_best_location(zipper, code) do
+    with :error <- Igniter.Code.Function.move_to_def(zipper, :html, 0, target: :at),
+         :error <- Igniter.Code.Function.move_to_def(zipper, :verified_routes, 0, target: :at) do
+      Igniter.Code.Common.add_code(zipper, code)
+    else
+      {:ok, target_zipper} ->
+        Igniter.Code.Common.add_code(target_zipper, code, placement: :before)
     end
   end
 

@@ -116,8 +116,9 @@ defmodule Mix.Tasks.Phx.Install.EndpointTest do
       assert igniter.rewrite.sources["lib/my_app_web/telemetry.ex"]
       assert igniter.rewrite.sources["lib/my_app_web/endpoint.ex"]
 
-      endpoint_content = Rewrite.source!(igniter.rewrite, "lib/my_app_web/endpoint.ex")
-                         |> Rewrite.Source.get(:content)
+      endpoint_content =
+        Rewrite.source!(igniter.rewrite, "lib/my_app_web/endpoint.ex")
+        |> Rewrite.Source.get(:content)
 
       assert endpoint_content =~ "otp_app: :my_app"
       assert endpoint_content =~ "plug(MyAppWeb.Router)"
@@ -132,8 +133,9 @@ defmodule Mix.Tasks.Phx.Install.EndpointTest do
         ])
         |> apply_igniter!()
 
-      endpoint_content = Rewrite.source!(igniter.rewrite, "lib/test_web/endpoint.ex")
-                         |> Rewrite.Source.get(:content)
+      endpoint_content =
+        Rewrite.source!(igniter.rewrite, "lib/test_web/endpoint.ex")
+        |> Rewrite.Source.get(:content)
 
       assert endpoint_content =~ "my_custom_salt"
     end

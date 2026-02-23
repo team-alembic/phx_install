@@ -193,16 +193,22 @@ defmodule Mix.Tasks.Phx.Install.CoreTest do
         ])
         |> apply_igniter!()
 
-      config_content = Rewrite.source!(igniter.rewrite, "config/config.exs")
-                       |> Rewrite.Source.get(:content)
+      config_content =
+        Rewrite.source!(igniter.rewrite, "config/config.exs")
+        |> Rewrite.Source.get(:content)
+
       assert config_content =~ "my_custom_salt"
 
-      dev_content = Rewrite.source!(igniter.rewrite, "config/dev.exs")
-                    |> Rewrite.Source.get(:content)
+      dev_content =
+        Rewrite.source!(igniter.rewrite, "config/dev.exs")
+        |> Rewrite.Source.get(:content)
+
       assert dev_content =~ "my_dev_secret"
 
-      test_content = Rewrite.source!(igniter.rewrite, "config/test.exs")
-                     |> Rewrite.Source.get(:content)
+      test_content =
+        Rewrite.source!(igniter.rewrite, "config/test.exs")
+        |> Rewrite.Source.get(:content)
+
       assert test_content =~ "my_test_secret"
     end
   end

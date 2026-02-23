@@ -121,71 +121,88 @@ defmodule Mix.Tasks.Phx.Install.Mailer do
     mailbox_code = ~s|forward "/mailbox", Plug.Swoosh.MailboxPreview|
 
     Igniter.Project.Module.find_and_update_module!(igniter, router_module, fn zipper ->
-      case Igniter.Code.Common.move_to(zipper, fn z ->
-             node = Sourceror.Zipper.node(z)
-
-             case node do
-               {:forward, _, [{:__block__, _, ["/mailbox"]} | _]} -> true
-               {:forward, _, ["/mailbox" | _]} -> true
-               _ -> false
-             end
-           end) do
-        {:ok, _} ->
-          {:ok, zipper}
-
-        :error ->
-          case Igniter.Code.Common.move_to(zipper, fn z ->
-                 node = Sourceror.Zipper.node(z)
-
-                 case node do
-                   {:if, _, [{:compile_env, _, [_, ^app_name, :dev_routes | _]} | _]} -> true
-                   {:if, _, [{:compile_env, _, [:erlang, :binary_to_atom, [^app_name | _], _]} | _]} -> true
-                   _ -> false
-                 end
-               end) do
-            {:ok, dev_routes_zipper} ->
-              case Igniter.Code.Common.move_to_do_block(dev_routes_zipper) do
-                {:ok, do_block_zipper} ->
-                  case Igniter.Code.Function.move_to_function_call_in_current_scope(
-                         do_block_zipper,
-                         :scope,
-                         [1, 2]
-                       ) do
-                    {:ok, scope_zipper} ->
-                      case Igniter.Code.Common.move_to_do_block(scope_zipper) do
-                        {:ok, scope_do_zipper} ->
-                          {:ok, Igniter.Code.Common.add_code(scope_do_zipper, mailbox_code)}
-
-                        :error ->
-                          {:ok, Igniter.Code.Common.add_code(do_block_zipper, mailbox_code)}
-                      end
-
-                    :error ->
-                      {:ok, Igniter.Code.Common.add_code(do_block_zipper, mailbox_code)}
-                  end
-
-                :error ->
-                  {:warning,
-                   Igniter.Util.Warning.formatted_warning(
-                     "Could not find dev_routes do block. Please add manually:",
-                     mailbox_code
-                   )}
-              end
-
-            :error ->
-              dev_routes_code = """
-              if Application.compile_env(#{inspect(app_name)}, :dev_routes) do
-                scope "/dev" do
-                  pipe_through :browser
-
-                  #{mailbox_code}
-                end
-              end
-              """
-
-              {:ok, Igniter.Code.Common.add_code(zipper, dev_routes_code)}
-          end
+      case find_existing_mailbox_forward(zipper) do
+        {:ok, _} -> {:ok, zipper}
+        :error -> insert_mailbox_route(zipper, app_name, mailbox_code)
       end
     end)
+  end
+
+  defp find_existing_mailbox_forward(zipper) do
+    Igniter.Code.Common.move_to(zipper, fn z ->
+      case Sourceror.Zipper.node(z) do
+        {:forward, _, [{:__block__, _, ["/mailbox"]} | _]} -> true
+        {:forward, _, ["/mailbox" | _]} -> true
+        _ -> false
+      end
+    end)
+  end
+
+  defp insert_mailbox_route(zipper, app_name, mailbox_code) do
+    case find_dev_routes_block(zipper, app_name) do
+      {:ok, dev_routes_zipper} ->
+        insert_mailbox_in_dev_routes(dev_routes_zipper, mailbox_code)
+
+      :error ->
+        create_dev_routes_with_mailbox(zipper, app_name, mailbox_code)
+    end
+  end
+
+  defp find_dev_routes_block(zipper, app_name) do
+    Igniter.Code.Common.move_to(zipper, fn z ->
+      case Sourceror.Zipper.node(z) do
+        {:if, _, [{:compile_env, _, [_, ^app_name, :dev_routes | _]} | _]} -> true
+        {:if, _, [{:compile_env, _, [:erlang, :binary_to_atom, [^app_name | _], _]} | _]} -> true
+        _ -> false
+      end
+    end)
+  end
+
+  defp insert_mailbox_in_dev_routes(dev_routes_zipper, mailbox_code) do
+    case Igniter.Code.Common.move_to_do_block(dev_routes_zipper) do
+      {:ok, do_block_zipper} ->
+        insert_mailbox_in_scope_or_block(do_block_zipper, mailbox_code)
+
+      :error ->
+        {:warning,
+         Igniter.Util.Warning.formatted_warning(
+           "Could not find dev_routes do block. Please add manually:",
+           mailbox_code
+         )}
+    end
+  end
+
+  defp insert_mailbox_in_scope_or_block(do_block_zipper, mailbox_code) do
+    case Igniter.Code.Function.move_to_function_call_in_current_scope(
+           do_block_zipper,
+           :scope,
+           [1, 2]
+         ) do
+      {:ok, scope_zipper} ->
+        case Igniter.Code.Common.move_to_do_block(scope_zipper) do
+          {:ok, scope_do_zipper} ->
+            {:ok, Igniter.Code.Common.add_code(scope_do_zipper, mailbox_code)}
+
+          :error ->
+            {:ok, Igniter.Code.Common.add_code(do_block_zipper, mailbox_code)}
+        end
+
+      :error ->
+        {:ok, Igniter.Code.Common.add_code(do_block_zipper, mailbox_code)}
+    end
+  end
+
+  defp create_dev_routes_with_mailbox(zipper, app_name, mailbox_code) do
+    dev_routes_code = """
+    if Application.compile_env(#{inspect(app_name)}, :dev_routes) do
+      scope "/dev" do
+        pipe_through :browser
+
+        #{mailbox_code}
+      end
+    end
+    """
+
+    {:ok, Igniter.Code.Common.add_code(zipper, dev_routes_code)}
   end
 end

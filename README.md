@@ -1,20 +1,20 @@
-# PhxInstall
+# Phoenix Installer
 
-Igniter-based installers for Phoenix Framework. Add Phoenix to any Elixir project with a single command.
+An alternative to `mix phx.new` that installs Phoenix into any Elixir project — new or existing — using [Igniter](https://hex.pm/packages/igniter) for AST-aware code generation.
 
-## Installation
+Instead of generating a project from a template, phx_install composes individual installer tasks that each add a specific feature (endpoint, router, LiveView, etc.). Each task manipulates your project's actual AST, so it can safely merge into existing code rather than overwriting it.
+
+## Quick Start
 
 ### New Project
 
-Create a new Elixir project with Phoenix installed:
-
 ```bash
-mix igniter.new my_app --install phx_install
+mix igniter.new my_app --install phx_install --only dev
 ```
 
 ### Existing Project
 
-Add `phx_install` to your dependencies:
+Add the dependency:
 
 ```elixir
 def deps do
@@ -31,154 +31,57 @@ mix deps.get
 mix phx.install
 ```
 
-## Usage
+## Why Not `mix phx.new`?
 
-### Full Installation
+`mix phx.new` is a template-based generator that creates an entire project from scratch. That works well for greenfield apps, but falls short when you want to:
 
-```bash
-mix phx.install
-```
+- **Add Phoenix to an existing Elixir project** — phx_install merges Phoenix into your current code rather than requiring a fresh project.
+- **Install features incrementally** — start with an API-only app and add LiveView later with `mix phx.install.live`, without re-running the full generator.
+- **Run it again safely** — every task is idempotent. Running it twice won't duplicate code or overwrite your changes.
 
-This installs a complete Phoenix application with:
-- Phoenix core (endpoint, router, telemetry)
-- LiveView with socket and components
-- Asset pipeline (esbuild + Tailwind CSS)
-- Gettext for internationalisation
-- LiveDashboard for development monitoring
+## Options
 
-### Options
+By default, `mix phx.install` sets up a full Phoenix application with LiveView, assets, Gettext, and LiveDashboard. Use flags to opt out:
 
 ```bash
 # API-only (no LiveView, no assets)
 mix phx.install --no-live --no-assets
 
+# Skip internationalisation
+mix phx.install --no-gettext
+
 # Skip LiveDashboard
 mix phx.install --no-dashboard
-
-# Skip Gettext
-mix phx.install --no-gettext
 ```
 
-### Database Support
-
-Add Ecto with PostgreSQL (default):
+Database and email support are separate tasks you can add at any time:
 
 ```bash
+# Ecto with PostgreSQL (default), MySQL, or SQLite
 mix phx.install.ecto
-```
-
-Or with a different adapter:
-
-```bash
 mix phx.install.ecto --adapter mysql
 mix phx.install.ecto --adapter sqlite
-```
 
-### Email Support
-
-Add Swoosh for email:
-
-```bash
+# Swoosh email
 mix phx.install.mailer
 ```
 
 ## Individual Tasks
 
-Each component can be installed separately:
+Each feature is a standalone task. The orchestrator (`mix phx.install`) composes them, but you can also run them independently:
 
-| Task | Description |
-|------|-------------|
-| `phx.install.core` | Application module, config files, base dependencies |
-| `phx.install.endpoint` | Phoenix.Endpoint, Telemetry, web module |
-| `phx.install.router` | Router with browser/API pipelines, error handling |
-| `phx.install.html` | HTML components, layouts, error pages |
-| `phx.install.live` | LiveView socket, helpers, and macros |
-| `phx.install.assets` | esbuild, Tailwind CSS, static assets |
-| `phx.install.gettext` | Internationalisation with Gettext |
-| `phx.install.dashboard` | Phoenix LiveDashboard (dev only) |
-| `phx.install.ecto` | Ecto database support with Repo |
-| `phx.install.mailer` | Swoosh email support |
-
-## What Gets Created
-
-### Directory Structure
-
-```
-lib/
-├── my_app/
-│   ├── application.ex      # OTP Application
-│   ├── repo.ex             # Ecto Repo (with --ecto)
-│   └── mailer.ex           # Swoosh Mailer (with --mailer)
-└── my_app_web/
-    ├── endpoint.ex         # Phoenix.Endpoint
-    ├── router.ex           # Phoenix.Router
-    ├── telemetry.ex        # Telemetry supervisor
-    ├── gettext.ex          # Gettext backend
-    ├── components/
-    │   ├── core_components.ex
-    │   └── layouts/
-    │       ├── app.html.heex
-    │       └── root.html.heex
-    └── controllers/
-        ├── error_html.ex
-        └── error_json.ex
-
-config/
-├── config.exs              # Base configuration
-├── dev.exs                 # Development config
-├── test.exs                # Test config
-├── prod.exs                # Production config
-└── runtime.exs             # Runtime config
-
-assets/
-├── js/app.js               # JavaScript entry point
-├── css/app.css             # Tailwind CSS entry point
-└── vendor/
-    └── topbar.js           # LiveView progress indicator
-
-priv/
-├── static/                 # Static assets
-├── gettext/                # Translation files
-└── repo/                   # Database migrations & seeds
-```
-
-### Dependencies Added
-
-**Always:**
-- `phoenix`
-- `phoenix_html`
-- `jason`
-- `bandit`
-- `dns_cluster`
-
-**With LiveView (default):**
-- `phoenix_live_view`
-
-**With Assets (default):**
-- `esbuild`
-- `tailwind`
-
-**With Dashboard (default):**
-- `phoenix_live_dashboard`
-
-**With Gettext (default):**
-- `gettext`
-
-**With Ecto:**
-- `ecto_sql`
-- `postgrex` / `myxql` / `ecto_sqlite3`
-
-**With Mailer:**
-- `swoosh`
-- `finch`
-
-## Differences from `mix phx.new`
-
-This project aims to produce equivalent output to `mix phx.new`, but uses Igniter for composable, incremental installation. Key differences:
-
-- **Composable**: Install only what you need
-- **Incremental**: Add features to existing projects
-- **Idempotent**: Safe to run multiple times
+| Task                    | Description                                            |
+|-------------------------|--------------------------------------------------------|
+| `phx.install.core`      | Application module, config files, base dependencies    |
+| `phx.install.endpoint`  | Phoenix.Endpoint, Telemetry, web module                |
+| `phx.install.router`    | Router with pipelines, error handling                  |
+| `phx.install.html`      | HTML components, layouts, error pages                  |
+| `phx.install.live`      | LiveView socket, helpers, and macros (composes `html`) |
+| `phx.install.assets`    | esbuild and Tailwind CSS                               |
+| `phx.install.gettext`   | Internationalisation with Gettext                      |
+| `phx.install.dashboard` | Phoenix LiveDashboard (dev only)                       |
+| `phx.install.ecto`      | Ecto database support with Repo                        |
+| `phx.install.mailer`    | Swoosh email support                                   |
 
 ## Development
 
@@ -186,10 +89,10 @@ This project aims to produce equivalent output to `mix phx.new`, but uses Ignite
 # Run tests
 mix test
 
-# Run acceptance tests (compares against phx.new output)
+# Run acceptance tests (generates phx.new projects for comparison)
 mix test --include acceptance
 ```
 
 ## Licence
 
-MIT
+Apache-2.0

@@ -80,8 +80,9 @@ defmodule Mix.Tasks.Phx.Install.RouterTest do
       assert igniter.rewrite.sources["lib/my_app_web/error_json.ex"]
       assert igniter.rewrite.sources["lib/my_app_web/conn_case.ex"]
 
-      router_content = Rewrite.source!(igniter.rewrite, "lib/my_app_web/router.ex")
-                       |> Rewrite.Source.get(:content)
+      router_content =
+        Rewrite.source!(igniter.rewrite, "lib/my_app_web/router.ex")
+        |> Rewrite.Source.get(:content)
 
       assert router_content =~ "use MyAppWeb, :router"
       assert router_content =~ ~s|scope "/api", MyAppWeb do|

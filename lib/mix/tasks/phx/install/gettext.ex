@@ -117,21 +117,13 @@ defmodule Mix.Tasks.Phx.Install.Gettext do
   defp add_gettext_to_web_module(igniter, web_module) do
     gettext_module = Module.concat(web_module, Gettext)
 
-    # Add gettext import to the html_helpers if it exists, otherwise to verified_routes
     Igniter.Project.Module.find_and_update_module!(igniter, web_module, fn zipper ->
-      case Igniter.Code.Function.move_to_defp(zipper, :html_helpers, 0) do
-        {:ok, html_helpers_zipper} ->
-          add_gettext_import_to_function(html_helpers_zipper, gettext_module)
-
-        :error ->
-          # No html_helpers, try adding to controller or a new function
-          case Igniter.Code.Function.move_to_def(zipper, :controller, 0) do
-            {:ok, controller_zipper} ->
-              add_gettext_import_to_function(controller_zipper, gettext_module)
-
-            :error ->
-              {:ok, zipper}
-          end
+      with :error <- Igniter.Code.Function.move_to_defp(zipper, :html_helpers, 0),
+           :error <- Igniter.Code.Function.move_to_def(zipper, :controller, 0) do
+        {:ok, zipper}
+      else
+        {:ok, target_zipper} ->
+          add_gettext_import_to_function(target_zipper, gettext_module)
       end
     end)
   end
