@@ -518,16 +518,16 @@ defmodule Mix.Tasks.Phx.Install.Assets do
   end
 
   defp update_setup_alias(igniter, _asset_builders) do
-    # Try to update the setup alias to include assets.setup and assets.build
-    # This is a best-effort operation
-    Igniter.Project.TaskAliases.modify_existing_alias(igniter, "setup", fn current_tasks ->
-      current_tasks = List.wrap(current_tasks)
-
-      if "assets.setup" in current_tasks do
-        current_tasks
-      else
-        current_tasks ++ ["assets.setup", "assets.build"]
-      end
-    end)
+    igniter
+    |> Igniter.Project.TaskAliases.add_alias(
+      "setup",
+      ["deps.get", "assets.setup", "assets.build"],
+      if_exists: {:append, "assets.setup"}
+    )
+    |> Igniter.Project.TaskAliases.add_alias(
+      "setup",
+      ["deps.get", "assets.setup", "assets.build"],
+      if_exists: {:append, "assets.build"}
+    )
   end
 end

@@ -11,11 +11,14 @@ defmodule Mix.Tasks.Phx.Install do
 
   ## Options
 
+  - `--ecto` / `--no-ecto` - Include Ecto database support (default: true)
+  - `--mailer` / `--no-mailer` - Include Swoosh mailer (default: true)
   - `--live` / `--no-live` - Include LiveView support (default: true)
   - `--assets` / `--no-assets` - Include asset pipeline (default: true)
   - `--gettext` / `--no-gettext` - Include Gettext i18n (default: true)
   - `--dashboard` / `--no-dashboard` - Include LiveDashboard (default: true)
   - `--page` / `--no-page` - Include stock homepage (default: true)
+  - `--all` - Enable all optional features, overriding any `--no-*` flags
 
   ## What Gets Installed
 
@@ -25,6 +28,8 @@ defmodule Mix.Tasks.Phx.Install do
   - `phx.install.router` - Router with pipelines, error handling
 
   Optional (based on flags):
+  - `phx.install.ecto` - Ecto database support, Repo, migrations
+  - `phx.install.mailer` - Swoosh mailer and mailbox route
   - `phx.install.live` - LiveView socket and macros
   - `phx.install.assets` - esbuild, tailwind configuration
   - `phx.install.gettext` - Internationalization
@@ -41,8 +46,11 @@ defmodule Mix.Tasks.Phx.Install do
       # API-only (no LiveView, no assets)
       mix phx.install --no-live --no-assets
 
-      # Skip dashboard
-      mix phx.install --no-dashboard
+      # Skip database and mailer
+      mix phx.install --no-ecto --no-mailer
+
+      # Enable everything (overrides any --no-* flags)
+      mix phx.install --all
   """
   use Igniter.Mix.Task
 
@@ -52,23 +60,31 @@ defmodule Mix.Tasks.Phx.Install do
       group: :phoenix,
       example: "mix phx.install --live --assets",
       schema: [
+        ecto: :boolean,
+        mailer: :boolean,
         live: :boolean,
         assets: :boolean,
         gettext: :boolean,
         dashboard: :boolean,
-        page: :boolean
+        page: :boolean,
+        all: :boolean
       ],
       defaults: [
+        ecto: true,
+        mailer: true,
         live: true,
         assets: true,
         gettext: true,
         dashboard: true,
-        page: true
+        page: true,
+        all: false
       ],
       composes: [
         "phx.install.core",
         "phx.install.endpoint",
         "phx.install.router",
+        "phx.install.ecto",
+        "phx.install.mailer",
         "phx.install.live",
         "phx.install.assets",
         "phx.install.gettext",
@@ -82,12 +98,14 @@ defmodule Mix.Tasks.Phx.Install do
 
   @impl Igniter.Mix.Task
   def igniter(igniter) do
-    opts = igniter.args.options
+    opts = resolve_opts(igniter.args.options)
 
     igniter
     |> Igniter.compose_task("phx.install.core")
     |> Igniter.compose_task("phx.install.endpoint")
     |> Igniter.compose_task("phx.install.router")
+    |> maybe_compose("phx.install.ecto", opts[:ecto])
+    |> maybe_compose("phx.install.mailer", opts[:mailer])
     |> maybe_compose("phx.install.live", opts[:live])
     |> maybe_compose("phx.install.gettext", opts[:gettext])
     |> maybe_compose("phx.install.assets", opts[:assets])
@@ -95,6 +113,22 @@ defmodule Mix.Tasks.Phx.Install do
     |> maybe_compose("phx.install.components", opts[:live])
     |> maybe_compose("phx.install.page", opts[:live] && opts[:page])
     |> maybe_compose("phx.install.dashboard", opts[:live] && opts[:dashboard])
+  end
+
+  defp resolve_opts(opts) do
+    if opts[:all] do
+      Keyword.merge(opts,
+        ecto: true,
+        mailer: true,
+        live: true,
+        assets: true,
+        gettext: true,
+        dashboard: true,
+        page: true
+      )
+    else
+      opts
+    end
   end
 
   defp maybe_compose(igniter, _task, false), do: igniter

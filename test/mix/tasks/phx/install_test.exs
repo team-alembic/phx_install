@@ -11,7 +11,9 @@ defmodule Mix.Tasks.Phx.InstallTest do
           "--no-live",
           "--no-assets",
           "--no-gettext",
-          "--no-dashboard"
+          "--no-dashboard",
+          "--no-ecto",
+          "--no-mailer"
         ])
         |> apply_igniter!()
 
@@ -31,15 +33,17 @@ defmodule Mix.Tasks.Phx.InstallTest do
     end
 
     test "includes all optional tasks by default" do
-      # We can't fully test this until the optional tasks exist,
-      # but we can verify the task info includes them
       info = Mix.Tasks.Phx.Install.info([], nil)
 
+      assert info.defaults[:ecto] == true
+      assert info.defaults[:mailer] == true
       assert info.defaults[:live] == true
       assert info.defaults[:assets] == true
       assert info.defaults[:gettext] == true
       assert info.defaults[:dashboard] == true
 
+      assert "phx.install.ecto" in info.composes
+      assert "phx.install.mailer" in info.composes
       assert "phx.install.live" in info.composes
       assert "phx.install.assets" in info.composes
       assert "phx.install.gettext" in info.composes
@@ -63,7 +67,9 @@ defmodule Mix.Tasks.Phx.InstallTest do
           "--no-live",
           "--no-assets",
           "--no-gettext",
-          "--no-dashboard"
+          "--no-dashboard",
+          "--no-ecto",
+          "--no-mailer"
         ])
         |> apply_igniter!()
 
@@ -71,6 +77,88 @@ defmodule Mix.Tasks.Phx.InstallTest do
       assert igniter.rewrite.sources["lib/my_app_web.ex"]
       assert igniter.rewrite.sources["lib/my_app_web/endpoint.ex"]
       assert igniter.rewrite.sources["lib/my_app_web/router.ex"]
+    end
+
+    test "includes ecto by default" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install", [
+          "--no-live",
+          "--no-assets",
+          "--no-gettext",
+          "--no-dashboard",
+          "--no-mailer"
+        ])
+        |> apply_igniter!()
+
+      assert igniter.rewrite.sources["lib/test/repo.ex"]
+    end
+
+    test "respects --no-ecto flag" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install", [
+          "--no-live",
+          "--no-assets",
+          "--no-gettext",
+          "--no-dashboard",
+          "--no-ecto",
+          "--no-mailer"
+        ])
+        |> apply_igniter!()
+
+      refute igniter.rewrite.sources["lib/test/repo.ex"]
+    end
+
+    test "includes mailer by default" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install", [
+          "--no-live",
+          "--no-assets",
+          "--no-gettext",
+          "--no-dashboard",
+          "--no-ecto"
+        ])
+        |> apply_igniter!()
+
+      assert igniter.rewrite.sources["lib/test/application/mailer.ex"]
+    end
+
+    test "respects --no-mailer flag" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install", [
+          "--no-live",
+          "--no-assets",
+          "--no-gettext",
+          "--no-dashboard",
+          "--no-ecto",
+          "--no-mailer"
+        ])
+        |> apply_igniter!()
+
+      refute igniter.rewrite.sources["lib/test/application/mailer.ex"]
+    end
+
+    test "--all flag enables all optional features" do
+      info = Mix.Tasks.Phx.Install.info([], nil)
+      assert :all in Keyword.keys(info.schema)
+      assert info.defaults[:all] == false
+    end
+
+    test "--all overrides --no-* flags" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install", [
+          "--no-ecto",
+          "--no-mailer",
+          "--all"
+        ])
+        |> apply_igniter!()
+
+      assert igniter.rewrite.sources["lib/test/repo.ex"]
+      assert igniter.rewrite.sources["lib/test/application/mailer.ex"]
     end
   end
 end
