@@ -23,7 +23,8 @@ defmodule Mix.Tasks.Phx.Install.Html do
   def info(_argv, _composing_task) do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
-      example: "mix phx.install.html"
+      example: "mix phx.install.html",
+      adds_deps: [{:phoenix_html, "~> 4.1"}]
     }
   end
 
@@ -35,7 +36,6 @@ defmodule Mix.Tasks.Phx.Install.Html do
 
     igniter
     |> Igniter.Project.IgniterConfig.add_extension(Igniter.Extensions.Phoenix)
-    |> Igniter.Project.Deps.add_dep({:phoenix_html, "~> 4.1"})
     |> create_core_components(web_module)
     |> create_layouts_module(web_module)
     |> create_root_layout(web_module)

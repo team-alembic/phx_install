@@ -27,10 +27,19 @@ defmodule Mix.Tasks.Phx.Install.Assets do
   use Igniter.Mix.Task
 
   @impl Igniter.Mix.Task
-  def info(_argv, _composing_task) do
+  def info(argv, _composing_task) do
+    {parsed, _, _} = OptionParser.parse(argv, strict: [esbuild: :boolean, tailwind: :boolean])
+    esbuild? = Keyword.get(parsed, :esbuild, true)
+    tailwind? = Keyword.get(parsed, :tailwind, true)
+
+    deps =
+      if(esbuild?, do: [{:esbuild, "~> 0.10"}], else: []) ++
+        if(tailwind?, do: [{:tailwind, "~> 0.3"}], else: [])
+
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.assets",
+      adds_deps: deps,
       schema: [
         esbuild: :boolean,
         tailwind: :boolean
@@ -53,8 +62,8 @@ defmodule Mix.Tasks.Phx.Install.Assets do
     tailwind? = opts[:tailwind]
 
     igniter
-    |> add_esbuild_dep(esbuild?)
-    |> add_tailwind_dep(tailwind?)
+    |> add_runtime_dep_option(:esbuild, esbuild?)
+    |> add_runtime_dep_option(:tailwind, tailwind?)
     |> create_app_js(web_module, esbuild?)
     |> create_app_css(web_module, tailwind?)
     |> create_topbar_js(esbuild?)
@@ -67,17 +76,16 @@ defmodule Mix.Tasks.Phx.Install.Assets do
     |> add_asset_aliases(app_name, esbuild?, tailwind?)
   end
 
-  defp add_esbuild_dep(igniter, true) do
-    Igniter.Project.Deps.add_dep(igniter, {:esbuild, "~> 0.10", runtime: Mix.env() == :dev})
+  defp add_runtime_dep_option(igniter, dep, true) do
+    Igniter.Project.Deps.set_dep_option(
+      igniter,
+      dep,
+      :runtime,
+      Sourceror.parse_string!("Mix.env() == :dev")
+    )
   end
 
-  defp add_esbuild_dep(igniter, false), do: igniter
-
-  defp add_tailwind_dep(igniter, true) do
-    Igniter.Project.Deps.add_dep(igniter, {:tailwind, "~> 0.3", runtime: Mix.env() == :dev})
-  end
-
-  defp add_tailwind_dep(igniter, false), do: igniter
+  defp add_runtime_dep_option(igniter, _dep, false), do: igniter
 
   defp create_app_js(igniter, _web_module, true) do
     content = """

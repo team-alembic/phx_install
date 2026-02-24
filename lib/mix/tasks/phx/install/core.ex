@@ -21,6 +21,7 @@ defmodule Mix.Tasks.Phx.Install.Core do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.core",
+      adds_deps: [{:phoenix, "~> 1.7"}],
       schema: [
         signing_salt: :string,
         secret_key_base_dev: :string,
@@ -48,7 +49,6 @@ defmodule Mix.Tasks.Phx.Install.Core do
 
     igniter
     |> add_phoenix_extension()
-    |> add_phoenix_dependency()
     |> create_application_module(app_name, app_module, web_module, endpoint_module)
     |> set_application_mod(application_module)
     |> set_project_listeners()
@@ -94,10 +94,6 @@ defmodule Mix.Tasks.Phx.Install.Core do
 
   defp add_phoenix_extension(igniter) do
     Igniter.Project.IgniterConfig.add_extension(igniter, Igniter.Extensions.Phoenix)
-  end
-
-  defp add_phoenix_dependency(igniter) do
-    Igniter.Project.Deps.add_dep(igniter, {:phoenix, "~> 1.7"})
   end
 
   defp create_application_module(igniter, app_name, app_module, web_module, endpoint_module) do

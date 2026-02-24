@@ -26,13 +26,15 @@ defmodule PhxInstall.MixProject do
 
   defp deps do
     [
-      {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
-      {:doctor, "~> 0.22", only: [:dev, :test], runtime: false},
-      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:igniter, "~> 0.5", optional: true, runtime: false},
+
+      # dev/text
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:doctor, "~> 0.22", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.16", only: [:dev, :test], runtime: false},
-      {:igniter, "~> 0.5", runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
+      {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
       {:phx_new, "~> 1.7", only: :test, runtime: false}
     ]
   end

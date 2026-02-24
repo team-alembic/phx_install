@@ -4,17 +4,9 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
   import Igniter.Test
 
   describe "phx.install.html" do
-    test "adds phoenix_html dependency" do
-      igniter =
-        test_project()
-        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.html")
-        |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "phoenix_html"
+    test "declares phoenix_html dependency" do
+      info = Mix.Tasks.Phx.Install.Html.info([], nil)
+      assert {:phoenix_html, "~> 4.1"} in info.adds_deps
     end
 
     test "creates CoreComponents module" do

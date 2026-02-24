@@ -4,17 +4,9 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
   import Igniter.Test
 
   describe "phx.install.live" do
-    test "adds phoenix_live_view dependency" do
-      igniter =
-        test_project()
-        |> Igniter.compose_task("phx.install.endpoint")
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "testsalt1"])
-        |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "phoenix_live_view"
+    test "declares phoenix_live_view dependency" do
+      info = Mix.Tasks.Phx.Install.Live.info([], nil)
+      assert {:phoenix_live_view, "~> 1.0"} in info.adds_deps
     end
 
     test "adds live_view config to endpoint" do

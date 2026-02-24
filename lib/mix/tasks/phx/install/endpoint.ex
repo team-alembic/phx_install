@@ -24,6 +24,12 @@ defmodule Mix.Tasks.Phx.Install.Endpoint do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.endpoint",
+      adds_deps: [
+        {:bandit, "~> 1.5"},
+        {:dns_cluster, "~> 0.1"},
+        {:telemetry_metrics, "~> 1.0"},
+        {:telemetry_poller, "~> 1.0"}
+      ],
       schema: [
         session_signing_salt: :string
       ]
@@ -40,18 +46,9 @@ defmodule Mix.Tasks.Phx.Install.Endpoint do
     session_signing_salt = opts[:session_signing_salt] || PhxInstall.random_string(8)
 
     igniter
-    |> add_dependencies()
     |> create_web_module(app_name, web_module, endpoint_module)
     |> create_telemetry_module(web_module)
     |> create_endpoint_module(app_name, web_module, endpoint_module, session_signing_salt)
-  end
-
-  defp add_dependencies(igniter) do
-    igniter
-    |> Igniter.Project.Deps.add_dep({:bandit, "~> 1.5"})
-    |> Igniter.Project.Deps.add_dep({:dns_cluster, "~> 0.1"})
-    |> Igniter.Project.Deps.add_dep({:telemetry_metrics, "~> 1.0"})
-    |> Igniter.Project.Deps.add_dep({:telemetry_poller, "~> 1.0"})
   end
 
   defp create_web_module(igniter, _app_name, web_module, endpoint_module) do

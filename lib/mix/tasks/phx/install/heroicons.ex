@@ -25,7 +25,16 @@ defmodule Mix.Tasks.Phx.Install.Heroicons do
   def info(_argv, _composing_task) do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
-      example: "mix phx.install.heroicons"
+      example: "mix phx.install.heroicons",
+      adds_deps: [
+        {:heroicons,
+         github: "tailwindlabs/heroicons",
+         tag: "v2.2.0",
+         sparse: "optimized",
+         app: false,
+         compile: false,
+         depth: 1}
+      ]
     }
   end
 
@@ -34,23 +43,9 @@ defmodule Mix.Tasks.Phx.Install.Heroicons do
     web_module = Igniter.Libs.Phoenix.web_module(igniter)
 
     igniter
-    |> add_heroicons_dep()
     |> create_heroicons_js()
     |> append_plugin_to_app_css()
     |> add_icon_component(web_module)
-  end
-
-  defp add_heroicons_dep(igniter) do
-    Igniter.Project.Deps.add_dep(
-      igniter,
-      {:heroicons,
-       github: "tailwindlabs/heroicons",
-       tag: "v2.2.0",
-       sparse: "optimized",
-       app: false,
-       compile: false,
-       depth: 1}
-    )
   end
 
   defp create_heroicons_js(igniter) do

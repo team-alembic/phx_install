@@ -24,10 +24,15 @@ defmodule Mix.Tasks.Phx.Install.Ecto do
   use Igniter.Mix.Task
 
   @impl Igniter.Mix.Task
-  def info(_argv, _composing_task) do
+  def info(argv, _composing_task) do
+    {parsed, _, _} = OptionParser.parse(argv, strict: [adapter: :string])
+    adapter = parsed[:adapter] || "postgres"
+    {_adapter_module, adapter_dep} = adapter_config(adapter)
+
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.ecto",
+      adds_deps: [{:ecto_sql, "~> 3.10"}, adapter_dep],
       schema: [
         adapter: :string
       ],
@@ -46,11 +51,9 @@ defmodule Mix.Tasks.Phx.Install.Ecto do
     repo_module = Module.concat(app_module, Repo)
 
     adapter = igniter.args.options[:adapter] || "postgres"
-    {adapter_module, adapter_dep} = adapter_config(adapter)
+    {adapter_module, _} = adapter_config(adapter)
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:ecto_sql, "~> 3.10"})
-    |> Igniter.Project.Deps.add_dep(adapter_dep)
     |> create_repo_module(app_name, app_module, adapter_module)
     |> configure_ecto_repos(app_name, repo_module)
     |> configure_dev_database(app_name, repo_module, adapter)

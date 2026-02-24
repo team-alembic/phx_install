@@ -4,30 +4,13 @@ defmodule Mix.Tasks.Phx.Install.EndpointTest do
   import Igniter.Test
 
   describe "phx.install.endpoint" do
-    test "adds required dependencies" do
-      igniter =
-        test_project()
-        |> Igniter.compose_task("phx.install.endpoint")
+    test "declares required dependencies" do
+      info = Mix.Tasks.Phx.Install.Endpoint.info([], nil)
 
-      igniter
-      |> assert_has_patch("mix.exs", """
-      + | {:bandit, "~> 1.5"}
-      """)
-
-      igniter
-      |> assert_has_patch("mix.exs", """
-      + | {:dns_cluster, "~> 0.1"}
-      """)
-
-      igniter
-      |> assert_has_patch("mix.exs", """
-      + | {:telemetry_metrics, "~> 1.0"}
-      """)
-
-      igniter
-      |> assert_has_patch("mix.exs", """
-      + | {:telemetry_poller, "~> 1.0"}
-      """)
+      assert {:bandit, "~> 1.5"} in info.adds_deps
+      assert {:dns_cluster, "~> 0.1"} in info.adds_deps
+      assert {:telemetry_metrics, "~> 1.0"} in info.adds_deps
+      assert {:telemetry_poller, "~> 1.0"} in info.adds_deps
     end
 
     test "creates web module" do

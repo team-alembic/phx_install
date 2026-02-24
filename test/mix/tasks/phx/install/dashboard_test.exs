@@ -4,18 +4,9 @@ defmodule Mix.Tasks.Phx.Install.DashboardTest do
   import Igniter.Test
 
   describe "phx.install.dashboard" do
-    test "adds phoenix_live_dashboard dependency" do
-      igniter =
-        test_project()
-        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.router")
-        |> Igniter.compose_task("phx.install.dashboard")
-        |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "phoenix_live_dashboard"
+    test "declares phoenix_live_dashboard dependency" do
+      info = Mix.Tasks.Phx.Install.Dashboard.info([], nil)
+      assert {:phoenix_live_dashboard, "~> 0.8"} in info.adds_deps
     end
 
     test "adds live_dashboard route to router" do

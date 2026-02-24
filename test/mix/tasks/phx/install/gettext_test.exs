@@ -4,17 +4,9 @@ defmodule Mix.Tasks.Phx.Install.GettextTest do
   import Igniter.Test
 
   describe "phx.install.gettext" do
-    test "adds gettext dependency" do
-      igniter =
-        test_project()
-        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.gettext")
-        |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "gettext"
+    test "declares gettext dependency" do
+      info = Mix.Tasks.Phx.Install.Gettext.info([], nil)
+      assert {:gettext, "~> 0.26"} in info.adds_deps
     end
 
     test "creates Gettext backend module" do

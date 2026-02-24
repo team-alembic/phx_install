@@ -12,16 +12,9 @@ defmodule Mix.Tasks.Phx.Install.HeroiconsTest do
   end
 
   describe "phx.install.heroicons" do
-    test "adds heroicons dependency" do
-      igniter =
-        project_with_assets()
-        |> Igniter.compose_task("phx.install.heroicons")
-        |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "heroicons"
+    test "declares heroicons dependency" do
+      info = Mix.Tasks.Phx.Install.Heroicons.info([], nil)
+      assert Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :heroicons end)
     end
 
     test "creates assets/vendor/heroicons.js" do

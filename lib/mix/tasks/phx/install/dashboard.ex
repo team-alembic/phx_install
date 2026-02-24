@@ -27,7 +27,8 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
   def info(_argv, _composing_task) do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
-      example: "mix phx.install.dashboard"
+      example: "mix phx.install.dashboard",
+      adds_deps: [{:phoenix_live_dashboard, "~> 0.8"}]
     }
   end
 
@@ -39,7 +40,6 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
     telemetry_module = Module.concat(web_module, Telemetry)
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:phoenix_live_dashboard, "~> 0.8"})
     |> add_dashboard_route(app_name, router_module, telemetry_module)
   end
 

@@ -22,7 +22,8 @@ defmodule Mix.Tasks.Phx.Install.Gettext do
   def info(_argv, _composing_task) do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
-      example: "mix phx.install.gettext"
+      example: "mix phx.install.gettext",
+      adds_deps: [{:gettext, "~> 0.26"}]
     }
   end
 
@@ -32,7 +33,6 @@ defmodule Mix.Tasks.Phx.Install.Gettext do
     web_module = Igniter.Libs.Phoenix.web_module(igniter)
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:gettext, "~> 0.26"})
     |> create_gettext_module(app_name, web_module)
     |> create_errors_pot()
     |> create_errors_po()

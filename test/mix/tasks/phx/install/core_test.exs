@@ -4,12 +4,9 @@ defmodule Mix.Tasks.Phx.Install.CoreTest do
   import Igniter.Test
 
   describe "phx.install.core" do
-    test "adds phoenix dependency to mix.exs" do
-      test_project()
-      |> Igniter.compose_task("phx.install.core")
-      |> assert_has_patch("mix.exs", """
-      + | {:phoenix, "~> 1.7"}
-      """)
+    test "declares phoenix dependency" do
+      info = Mix.Tasks.Phx.Install.Core.info([], nil)
+      assert {:phoenix, "~> 1.7"} in info.adds_deps
     end
 
     test "creates application module" do

@@ -4,30 +4,11 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
   import Igniter.Test
 
   describe "phx.install.assets" do
-    test "adds esbuild dependency" do
-      igniter =
-        test_project()
-        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.assets")
-        |> apply_igniter!()
+    test "declares esbuild and tailwind dependencies" do
+      info = Mix.Tasks.Phx.Install.Assets.info([], nil)
 
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "esbuild"
-    end
-
-    test "adds tailwind dependency" do
-      igniter =
-        test_project()
-        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.assets")
-        |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "tailwind"
+      assert Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :esbuild end)
+      assert Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :tailwind end)
     end
 
     test "creates assets/js/app.js" do
@@ -168,33 +149,31 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
     end
 
     test "respects --no-esbuild flag" do
+      info = Mix.Tasks.Phx.Install.Assets.info(["--no-esbuild"], nil)
+
+      refute Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :esbuild end)
+      assert Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :tailwind end)
+
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
         |> Igniter.compose_task("phx.install.assets", ["--no-esbuild"])
         |> apply_igniter!()
 
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      refute content =~ "{:esbuild"
-      assert content =~ "{:tailwind"
-
       refute Map.has_key?(igniter.rewrite.sources, "assets/js/app.js")
     end
 
     test "respects --no-tailwind flag" do
+      info = Mix.Tasks.Phx.Install.Assets.info(["--no-tailwind"], nil)
+
+      assert Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :esbuild end)
+      refute Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :tailwind end)
+
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
         |> Igniter.compose_task("phx.install.assets", ["--no-tailwind"])
         |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "{:esbuild"
-      refute content =~ "{:tailwind"
 
       refute Map.has_key?(igniter.rewrite.sources, "assets/css/app.css")
     end

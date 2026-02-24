@@ -4,30 +4,14 @@ defmodule Mix.Tasks.Phx.Install.EctoTest do
   import Igniter.Test
 
   describe "phx.install.ecto" do
-    test "adds ecto_sql dependency" do
-      igniter =
-        test_project()
-        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.ecto")
-        |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "ecto_sql"
+    test "declares ecto_sql dependency" do
+      info = Mix.Tasks.Phx.Install.Ecto.info([], nil)
+      assert {:ecto_sql, "~> 3.10"} in info.adds_deps
     end
 
-    test "adds postgrex dependency by default" do
-      igniter =
-        test_project()
-        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.ecto")
-        |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "postgrex"
+    test "declares postgrex dependency by default" do
+      info = Mix.Tasks.Phx.Install.Ecto.info([], nil)
+      assert Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :postgrex end)
     end
 
     test "creates Repo module" do
@@ -207,16 +191,14 @@ defmodule Mix.Tasks.Phx.Install.EctoTest do
     end
 
     test "supports mysql adapter" do
+      info = Mix.Tasks.Phx.Install.Ecto.info(["--adapter", "mysql"], nil)
+      assert Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :myxql end)
+
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
         |> Igniter.compose_task("phx.install.ecto", ["--adapter", "mysql"])
         |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "myxql"
 
       source = Rewrite.source!(igniter.rewrite, "lib/test/repo.ex")
       content = Rewrite.Source.get(source, :content)
@@ -225,16 +207,14 @@ defmodule Mix.Tasks.Phx.Install.EctoTest do
     end
 
     test "supports sqlite adapter" do
+      info = Mix.Tasks.Phx.Install.Ecto.info(["--adapter", "sqlite"], nil)
+      assert Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :ecto_sqlite3 end)
+
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
         |> Igniter.compose_task("phx.install.ecto", ["--adapter", "sqlite"])
         |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "mix.exs")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "ecto_sqlite3"
 
       source = Rewrite.source!(igniter.rewrite, "lib/test/repo.ex")
       content = Rewrite.Source.get(source, :content)

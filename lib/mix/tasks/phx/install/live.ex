@@ -27,6 +27,7 @@ defmodule Mix.Tasks.Phx.Install.Live do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.live",
+      adds_deps: [{:phoenix_live_view, "~> 1.0"}],
       schema: [
         live_signing_salt: :string
       ],
@@ -45,7 +46,6 @@ defmodule Mix.Tasks.Phx.Install.Live do
 
     igniter
     |> Igniter.compose_task("phx.install.html")
-    |> Igniter.Project.Deps.add_dep({:phoenix_live_view, "~> 1.0"})
     |> add_live_view_config(app_name, endpoint_module, live_signing_salt)
     |> add_socket_to_endpoint(endpoint_module)
     |> add_live_macros_to_web_module(web_module)
