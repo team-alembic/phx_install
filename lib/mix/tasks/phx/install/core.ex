@@ -44,10 +44,14 @@ defmodule Mix.Tasks.Phx.Install.Core do
       secret_key_base_test: opts[:secret_key_base_test] || PhxInstall.random_string(64)
     }
 
+    application_module = Module.concat(app_module, Application)
+
     igniter
     |> add_phoenix_extension()
     |> add_phoenix_dependency()
     |> create_application_module(app_name, app_module, web_module, endpoint_module)
+    |> set_application_mod(application_module)
+    |> set_project_listeners()
     |> configure_base_config(app_name, app_module, web_module, endpoint_module, secrets)
     |> configure_dev(app_name, endpoint_module, secrets)
     |> configure_test(app_name, endpoint_module, secrets)
@@ -55,6 +59,35 @@ defmodule Mix.Tasks.Phx.Install.Core do
     |> configure_runtime(app_name, endpoint_module)
     |> configure_formatter()
     |> create_test_helper()
+  end
+
+  defp set_application_mod(igniter, application_module) do
+    Igniter.update_elixir_file(igniter, "mix.exs", fn zipper ->
+      with {:ok, zipper} <- Igniter.Code.Module.move_to_module_using(zipper, Mix.Project),
+           {:ok, zipper} <- Igniter.Code.Function.move_to_def(zipper, :application, 0) do
+        zipper
+        |> Igniter.Code.Common.rightmost()
+        |> Igniter.Code.Keyword.set_keyword_key(
+          :mod,
+          {application_module, []},
+          fn z ->
+            code =
+              {application_module, []}
+              |> Sourceror.to_string()
+              |> Sourceror.parse_string!()
+
+            {:ok, Igniter.Code.Common.replace_code(z, code)}
+          end
+        )
+      end
+    end)
+  end
+
+  defp set_project_listeners(igniter) do
+    Igniter.Project.MixProject.update(igniter, :project, [:listeners], fn
+      nil -> {:ok, {:code, Sourceror.parse_string!("[Phoenix.CodeReloader]")}}
+      zipper -> {:ok, zipper}
+    end)
   end
 
   defp add_phoenix_extension(igniter) do
@@ -149,8 +182,7 @@ defmodule Mix.Tasks.Phx.Install.Core do
          check_origin: false,
          code_reloader: true,
          debug_errors: true,
-         secret_key_base: #{inspect(secrets.secret_key_base_dev)},
-         watchers: []
+         secret_key_base: #{inspect(secrets.secret_key_base_dev)}
        ]
        """)}
     )

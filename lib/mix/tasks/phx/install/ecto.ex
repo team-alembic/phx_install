@@ -41,9 +41,7 @@ defmodule Mix.Tasks.Phx.Install.Ecto do
   def igniter(igniter) do
     app_name = Igniter.Project.Application.app_name(igniter)
 
-    app_module =
-      Igniter.Project.Application.app_module(igniter) ||
-        Module.concat([Macro.camelize(to_string(app_name))])
+    app_module = Igniter.Project.Module.module_name_prefix(igniter)
 
     repo_module = Module.concat(app_module, Repo)
 
@@ -197,62 +195,97 @@ defmodule Mix.Tasks.Phx.Install.Ecto do
   end
 
   defp configure_prod_database(igniter, app_name, repo_module, "sqlite") do
-    prod_code = """
-    # Database configuration for production
-    if config_env() == :prod do
-      database_path =
-        System.get_env("DATABASE_PATH") ||
-          raise \"""
-          environment variable DATABASE_PATH is missing.
-          For example: /etc/#{app_name}/#{app_name}.db
-          \"""
+    db_code = """
+    database_path =
+      System.get_env("DATABASE_PATH") ||
+        raise \"""
+        environment variable DATABASE_PATH is missing.
+        For example: /etc/#{app_name}/#{app_name}.db
+        \"""
 
-      config #{inspect(app_name)}, #{inspect(repo_module)},
-        database: database_path,
-        pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
-    end
+    config #{inspect(app_name)}, #{inspect(repo_module)},
+      database: database_path,
+      pool_size: String.to_integer(System.get_env("POOL_SIZE") || "5")
     """
 
-    Igniter.Project.Config.configure_runtime_env(
-      igniter,
-      :prod,
-      app_name,
-      [repo_module, :database],
-      {:code, Sourceror.parse_string!("database_path")},
-      updater: fn zipper -> {:ok, zipper} end,
-      failure_message: prod_code
-    )
+    add_code_to_prod_block(igniter, db_code, repo_module)
   end
 
   defp configure_prod_database(igniter, app_name, repo_module, _adapter) do
-    prod_code = """
-    # Database configuration for production
+    db_code = """
+    database_url =
+      System.get_env("DATABASE_URL") ||
+        raise \"""
+        environment variable DATABASE_URL is missing.
+        For example: ecto://USER:PASS@HOST/DATABASE
+        \"""
+
+    maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
+
+    config #{inspect(app_name)}, #{inspect(repo_module)},
+      url: database_url,
+      pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
+      socket_options: maybe_ipv6
+    """
+
+    add_code_to_prod_block(igniter, db_code, repo_module)
+  end
+
+  defp add_code_to_prod_block(igniter, db_code, repo_module) do
+    prod_block = """
+    import Config
+
     if config_env() == :prod do
-      database_url =
-        System.get_env("DATABASE_URL") ||
-          raise \"""
-          environment variable DATABASE_URL is missing.
-          For example: ecto://USER:PASS@HOST/DATABASE
-          \"""
-
-      maybe_ipv6 = if System.get_env("ECTO_IPV6") in ~w(true 1), do: [:inet6], else: []
-
-      config #{inspect(app_name)}, #{inspect(repo_module)},
-        url: database_url,
-        pool_size: String.to_integer(System.get_env("POOL_SIZE") || "10"),
-        socket_options: maybe_ipv6
+      #{db_code}
     end
     """
 
-    Igniter.Project.Config.configure_runtime_env(
+    Igniter.create_or_update_elixir_file(
       igniter,
-      :prod,
-      app_name,
-      [repo_module, :url],
-      {:code, Sourceror.parse_string!("database_url")},
-      updater: fn zipper -> {:ok, zipper} end,
-      failure_message: prod_code
+      "config/runtime.exs",
+      prod_block,
+      fn zipper ->
+        if has_repo_config?(zipper, repo_module) do
+          {:ok, zipper}
+        else
+          case find_prod_block(zipper) do
+            {:ok, prod_zipper} ->
+              case Igniter.Code.Common.move_to_do_block(prod_zipper) do
+                {:ok, body_zipper} ->
+                  {:ok, Igniter.Code.Common.add_code(body_zipper, db_code)}
+
+                :error ->
+                  {:ok, Igniter.Code.Common.add_code(prod_zipper, db_code)}
+              end
+
+            :error ->
+              {:ok, Igniter.Code.Common.add_code(zipper, db_code)}
+          end
+        end
+      end
     )
+  end
+
+  defp has_repo_config?(zipper, repo_module) do
+    case Igniter.Code.Function.move_to_function_call(
+           zipper,
+           :config,
+           [3, 4],
+           &Igniter.Code.Function.argument_equals?(&1, 1, repo_module)
+         ) do
+      {:ok, _} -> true
+      :error -> false
+    end
+  end
+
+  defp find_prod_block(zipper) do
+    Igniter.Code.Common.move_to(zipper, fn z ->
+      case Sourceror.Zipper.node(z) do
+        {:if, _, [{:==, _, [{:config_env, _, _}, {:__block__, _, [:prod]}]} | _]} -> true
+        {:if, _, [{:==, _, [{:config_env, _, _}, :prod]} | _]} -> true
+        _ -> false
+      end
+    end)
   end
 
   defp create_seeds_file(igniter, app_module) do

@@ -131,13 +131,16 @@ defmodule Mix.Tasks.Phx.Install.Gettext do
   defp add_gettext_import_to_function(zipper, gettext_module) do
     import_code = "use Gettext, backend: #{inspect(gettext_module)}"
 
-    # Check if the import already exists
-    case Igniter.Code.Function.move_to_function_call_in_current_scope(
-           zipper,
-           :use,
-           [1, 2],
-           &Igniter.Code.Function.argument_equals?(&1, 0, Gettext)
-         ) do
+    with {:ok, quote_body_zipper} <- Igniter.Code.Common.move_to_do_block(zipper),
+         :error <-
+           Igniter.Code.Function.move_to_function_call_in_current_scope(
+             quote_body_zipper,
+             :use,
+             [1, 2],
+             &Igniter.Code.Function.argument_equals?(&1, 0, Gettext)
+           ) do
+      {:ok, Igniter.Code.Common.add_code(quote_body_zipper, import_code)}
+    else
       {:ok, _} ->
         {:ok, zipper}
 

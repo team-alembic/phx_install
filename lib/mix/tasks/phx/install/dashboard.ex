@@ -57,7 +57,7 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
     """
 
     Igniter.Project.Module.find_and_update_module!(igniter, router_module, fn zipper ->
-      case Igniter.Code.Function.move_to_function_call_in_current_scope(
+      case Igniter.Code.Function.move_to_function_call(
              zipper,
              :live_dashboard,
              [1, 2],
