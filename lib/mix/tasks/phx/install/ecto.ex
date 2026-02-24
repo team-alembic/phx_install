@@ -244,26 +244,32 @@ defmodule Mix.Tasks.Phx.Install.Ecto do
       igniter,
       "config/runtime.exs",
       prod_block,
-      fn zipper ->
-        if has_repo_config?(zipper, repo_module) do
-          {:ok, zipper}
-        else
-          case find_prod_block(zipper) do
-            {:ok, prod_zipper} ->
-              case Igniter.Code.Common.move_to_do_block(prod_zipper) do
-                {:ok, body_zipper} ->
-                  {:ok, Igniter.Code.Common.add_code(body_zipper, db_code)}
-
-                :error ->
-                  {:ok, Igniter.Code.Common.add_code(prod_zipper, db_code)}
-              end
-
-            :error ->
-              {:ok, Igniter.Code.Common.add_code(zipper, db_code)}
-          end
-        end
-      end
+      &insert_db_code_into_runtime(&1, db_code, repo_module)
     )
+  end
+
+  defp insert_db_code_into_runtime(zipper, db_code, repo_module) do
+    if has_repo_config?(zipper, repo_module) do
+      {:ok, zipper}
+    else
+      insert_db_code_into_prod_block(zipper, db_code)
+    end
+  end
+
+  defp insert_db_code_into_prod_block(zipper, db_code) do
+    case find_prod_block(zipper) do
+      {:ok, prod_zipper} ->
+        case Igniter.Code.Common.move_to_do_block(prod_zipper) do
+          {:ok, body_zipper} ->
+            {:ok, Igniter.Code.Common.add_code(body_zipper, db_code)}
+
+          :error ->
+            {:ok, Igniter.Code.Common.add_code(prod_zipper, db_code)}
+        end
+
+      :error ->
+        {:ok, Igniter.Code.Common.add_code(zipper, db_code)}
+    end
   end
 
   defp has_repo_config?(zipper, repo_module) do

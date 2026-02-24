@@ -70,17 +70,19 @@ defmodule Mix.Tasks.Phx.Install.Core do
         |> Igniter.Code.Keyword.set_keyword_key(
           :mod,
           {application_module, []},
-          fn z ->
-            code =
-              {application_module, []}
-              |> Sourceror.to_string()
-              |> Sourceror.parse_string!()
-
-            {:ok, Igniter.Code.Common.replace_code(z, code)}
-          end
+          &replace_application_mod(&1, application_module)
         )
       end
     end)
+  end
+
+  defp replace_application_mod(zipper, application_module) do
+    code =
+      {application_module, []}
+      |> Sourceror.to_string()
+      |> Sourceror.parse_string!()
+
+    {:ok, Igniter.Code.Common.replace_code(zipper, code)}
   end
 
   defp set_project_listeners(igniter) do

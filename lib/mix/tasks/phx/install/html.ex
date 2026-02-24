@@ -520,36 +520,43 @@ defmodule Mix.Tasks.Phx.Install.Html do
     end
     """
 
-    case Igniter.Project.Module.find_and_update_module(igniter, router_module, fn zipper ->
-           case Igniter.Code.Function.move_to_function_call_in_current_scope(
-                  zipper,
-                  :pipeline,
-                  2,
-                  &Igniter.Code.Function.argument_equals?(&1, 0, :browser)
-                ) do
-             {:ok, _} ->
-               {:ok, zipper}
-
-             :error ->
-               case Igniter.Code.Function.move_to_function_call_in_current_scope(
-                      zipper,
-                      :pipeline,
-                      2,
-                      &Igniter.Code.Function.argument_equals?(&1, 0, :api)
-                    ) do
-                 {:ok, api_zipper} ->
-                   {:ok,
-                    Igniter.Code.Common.add_code(api_zipper, browser_pipeline_code,
-                      placement: :before
-                    )}
-
-                 :error ->
-                   {:ok, Igniter.Code.Common.add_code(zipper, browser_pipeline_code)}
-               end
-           end
-         end) do
+    case Igniter.Project.Module.find_and_update_module(
+           igniter,
+           router_module,
+           &insert_browser_pipeline(&1, browser_pipeline_code)
+         ) do
       {:ok, igniter} -> igniter
       {:error, igniter} -> igniter
+    end
+  end
+
+  defp insert_browser_pipeline(zipper, browser_pipeline_code) do
+    case Igniter.Code.Function.move_to_function_call_in_current_scope(
+           zipper,
+           :pipeline,
+           2,
+           &Igniter.Code.Function.argument_equals?(&1, 0, :browser)
+         ) do
+      {:ok, _} ->
+        {:ok, zipper}
+
+      :error ->
+        insert_browser_pipeline_before_api(zipper, browser_pipeline_code)
+    end
+  end
+
+  defp insert_browser_pipeline_before_api(zipper, browser_pipeline_code) do
+    case Igniter.Code.Function.move_to_function_call_in_current_scope(
+           zipper,
+           :pipeline,
+           2,
+           &Igniter.Code.Function.argument_equals?(&1, 0, :api)
+         ) do
+      {:ok, api_zipper} ->
+        {:ok, Igniter.Code.Common.add_code(api_zipper, browser_pipeline_code, placement: :before)}
+
+      :error ->
+        {:ok, Igniter.Code.Common.add_code(zipper, browser_pipeline_code)}
     end
   end
 

@@ -211,26 +211,32 @@ defmodule Mix.Tasks.Phx.Install.Live do
   defp upgrade_to_live_flash(igniter, web_module) do
     router_module = Module.concat(web_module, Router)
 
-    case Igniter.Project.Module.find_and_update_module(igniter, router_module, fn zipper ->
-           case Igniter.Code.Function.move_to_function_call(
-                  zipper,
-                  :plug,
-                  [1, 2],
-                  &Igniter.Code.Function.argument_equals?(&1, 0, :fetch_flash)
-                ) do
-             {:ok, flash_zipper} ->
-               {:ok,
-                Sourceror.Zipper.replace(
-                  flash_zipper,
-                  Sourceror.parse_string!("plug :fetch_live_flash")
-                )}
-
-             :error ->
-               {:ok, zipper}
-           end
-         end) do
+    case Igniter.Project.Module.find_and_update_module(
+           igniter,
+           router_module,
+           &replace_fetch_flash_with_live_flash/1
+         ) do
       {:ok, igniter} -> igniter
       {:error, igniter} -> igniter
+    end
+  end
+
+  defp replace_fetch_flash_with_live_flash(zipper) do
+    case Igniter.Code.Function.move_to_function_call(
+           zipper,
+           :plug,
+           [1, 2],
+           &Igniter.Code.Function.argument_equals?(&1, 0, :fetch_flash)
+         ) do
+      {:ok, flash_zipper} ->
+        {:ok,
+         Sourceror.Zipper.replace(
+           flash_zipper,
+           Sourceror.parse_string!("plug :fetch_live_flash")
+         )}
+
+      :error ->
+        {:ok, zipper}
     end
   end
 end

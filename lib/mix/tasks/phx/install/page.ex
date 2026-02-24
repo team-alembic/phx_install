@@ -90,15 +90,21 @@ defmodule Mix.Tasks.Phx.Install.Page do
     end
     """
 
-    case Igniter.Project.Module.find_and_update_module(igniter, router_module, fn zipper ->
-           if has_browser_root_scope?(zipper, web_module) do
-             {:ok, zipper}
-           else
-             {:ok, add_browser_scope(zipper, browser_scope_code)}
-           end
-         end) do
+    case Igniter.Project.Module.find_and_update_module(
+           igniter,
+           router_module,
+           &maybe_add_browser_scope(&1, web_module, browser_scope_code)
+         ) do
       {:ok, igniter} -> igniter
       {:error, igniter} -> igniter
+    end
+  end
+
+  defp maybe_add_browser_scope(zipper, web_module, browser_scope_code) do
+    if has_browser_root_scope?(zipper, web_module) do
+      {:ok, zipper}
+    else
+      {:ok, add_browser_scope(zipper, browser_scope_code)}
     end
   end
 
