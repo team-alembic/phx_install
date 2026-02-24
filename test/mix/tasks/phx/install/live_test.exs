@@ -95,6 +95,23 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
       assert content =~ "import Phoenix.LiveView.Router"
     end
 
+    test "adds show/2 and hide/2 JS helpers to CoreComponents" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "lib/test_web/components/core_components.ex")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ "def show("
+      assert content =~ "def hide("
+      assert content =~ "alias Phoenix.LiveView.JS"
+      assert content =~ "JS.show"
+      assert content =~ "JS.hide"
+    end
+
     test "is idempotent" do
       igniter =
         test_project()

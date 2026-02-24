@@ -8,6 +8,7 @@ defmodule Mix.Tasks.Phx.Install.Live do
   - Adds LiveView signing salt configuration
   - Adds `live_view` and `live_component` macros to the web module
   - Adds `Phoenix.LiveView.Router` import to router macro
+  - Adds `alias Phoenix.LiveView.JS` and `show/2`, `hide/2` helpers to CoreComponents
 
   ## Usage
 
@@ -49,6 +50,8 @@ defmodule Mix.Tasks.Phx.Install.Live do
     |> add_socket_to_endpoint(endpoint_module)
     |> add_live_macros_to_web_module(web_module)
     |> add_live_router_import(web_module)
+    |> add_js_helpers_to_core_components(web_module)
+    |> upgrade_to_live_flash(web_module)
   end
 
   defp add_live_view_config(igniter, app_name, endpoint_module, live_signing_salt) do
@@ -146,14 +149,15 @@ defmodule Mix.Tasks.Phx.Install.Live do
 
     Igniter.Project.Module.find_and_update_module!(igniter, web_module, fn zipper ->
       with {:ok, router_zipper} <- Igniter.Code.Function.move_to_def(zipper, :router, 0),
+           {:ok, quote_body_zipper} <- Igniter.Code.Common.move_to_do_block(router_zipper),
            :error <-
              Igniter.Code.Function.move_to_function_call_in_current_scope(
-               router_zipper,
+               quote_body_zipper,
                :import,
                [1, 2],
                &Igniter.Code.Function.argument_equals?(&1, 0, Phoenix.LiveView.Router)
              ) do
-        {:ok, Igniter.Code.Common.add_code(router_zipper, import_code)}
+        {:ok, Igniter.Code.Common.add_code(quote_body_zipper, import_code)}
       else
         {:ok, _existing_import} ->
           {:ok, zipper}
@@ -162,5 +166,71 @@ defmodule Mix.Tasks.Phx.Install.Live do
           {:ok, zipper}
       end
     end)
+  end
+
+  defp add_js_helpers_to_core_components(igniter, web_module) do
+    core_components_module = Module.concat(web_module, CoreComponents)
+
+    js_helpers_code = """
+    alias Phoenix.LiveView.JS
+
+    def show(js \\\\ %JS{}, selector) do
+      JS.show(js,
+        to: selector,
+        time: 300,
+        transition:
+          {"transition-all ease-out duration-300",
+           "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95",
+           "opacity-100 translate-y-0 sm:scale-100"}
+      )
+    end
+
+    def hide(js \\\\ %JS{}, selector) do
+      JS.hide(js,
+        to: selector,
+        time: 200,
+        transition:
+          {"transition-all ease-in duration-200", "opacity-100 translate-y-0 sm:scale-100",
+           "opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"}
+      )
+    end
+    """
+
+    Igniter.Project.Module.find_and_update_module!(
+      igniter,
+      core_components_module,
+      fn zipper ->
+        case Igniter.Code.Function.move_to_def(zipper, :show, 2) do
+          {:ok, _} -> {:ok, zipper}
+          :error -> {:ok, Igniter.Code.Common.add_code(zipper, js_helpers_code)}
+        end
+      end
+    )
+  end
+
+  defp upgrade_to_live_flash(igniter, web_module) do
+    router_module = Module.concat(web_module, Router)
+
+    case Igniter.Project.Module.find_and_update_module(igniter, router_module, fn zipper ->
+           case Igniter.Code.Function.move_to_function_call(
+                  zipper,
+                  :plug,
+                  [1, 2],
+                  &Igniter.Code.Function.argument_equals?(&1, 0, :fetch_flash)
+                ) do
+             {:ok, flash_zipper} ->
+               {:ok,
+                Sourceror.Zipper.replace(
+                  flash_zipper,
+                  Sourceror.parse_string!("plug :fetch_live_flash")
+                )}
+
+             :error ->
+               {:ok, zipper}
+           end
+         end) do
+      {:ok, igniter} -> igniter
+      {:error, igniter} -> igniter
+    end
   end
 end

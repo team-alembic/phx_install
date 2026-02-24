@@ -15,6 +15,7 @@ defmodule Mix.Tasks.Phx.Install do
   - `--assets` / `--no-assets` - Include asset pipeline (default: true)
   - `--gettext` / `--no-gettext` - Include Gettext i18n (default: true)
   - `--dashboard` / `--no-dashboard` - Include LiveDashboard (default: true)
+  - `--page` / `--no-page` - Include stock homepage (default: true)
 
   ## What Gets Installed
 
@@ -27,6 +28,9 @@ defmodule Mix.Tasks.Phx.Install do
   - `phx.install.live` - LiveView socket and macros
   - `phx.install.assets` - esbuild, tailwind configuration
   - `phx.install.gettext` - Internationalization
+  - `phx.install.heroicons` - Heroicon rendering (requires assets)
+  - `phx.install.components` - Data display components (requires live)
+  - `phx.install.page` - Stock homepage with PageController
   - `phx.install.dashboard` - LiveDashboard in dev
 
   ## Examples
@@ -51,13 +55,15 @@ defmodule Mix.Tasks.Phx.Install do
         live: :boolean,
         assets: :boolean,
         gettext: :boolean,
-        dashboard: :boolean
+        dashboard: :boolean,
+        page: :boolean
       ],
       defaults: [
         live: true,
         assets: true,
         gettext: true,
-        dashboard: true
+        dashboard: true,
+        page: true
       ],
       composes: [
         "phx.install.core",
@@ -66,6 +72,9 @@ defmodule Mix.Tasks.Phx.Install do
         "phx.install.live",
         "phx.install.assets",
         "phx.install.gettext",
+        "phx.install.heroicons",
+        "phx.install.components",
+        "phx.install.page",
         "phx.install.dashboard"
       ]
     }
@@ -82,6 +91,9 @@ defmodule Mix.Tasks.Phx.Install do
     |> maybe_compose("phx.install.live", opts[:live])
     |> maybe_compose("phx.install.gettext", opts[:gettext])
     |> maybe_compose("phx.install.assets", opts[:assets])
+    |> maybe_compose("phx.install.heroicons", opts[:assets])
+    |> maybe_compose("phx.install.components", opts[:live])
+    |> maybe_compose("phx.install.page", opts[:live] && opts[:page])
     |> maybe_compose("phx.install.dashboard", opts[:live] && opts[:dashboard])
   end
 

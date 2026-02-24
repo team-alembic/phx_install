@@ -42,6 +42,7 @@ defmodule Mix.Tasks.Phx.Install.Html do
     |> create_app_layout(web_module)
     |> create_error_html(web_module)
     |> add_html_helpers_to_web_module(web_module, endpoint_module)
+    |> add_browser_pipeline_to_router(web_module)
     |> update_endpoint_error_config(app_name, endpoint_module, web_module)
   end
 
@@ -146,29 +147,40 @@ defmodule Mix.Tasks.Phx.Install.Html do
       end
 
       @doc \"\"\"
-      Renders a button.
+      Renders a button with navigation support.
 
       ## Examples
 
           <.button>Send!</.button>
-          <.button phx-click="go">Send!</.button>
+          <.button phx-click="go" variant="primary">Send!</.button>
+          <.button navigate={~p"/"}>Home</.button>
       \"\"\"
-      attr :type, :string, default: nil
-      attr :class, :string, default: nil
-      attr :rest, :global, include: ~w(disabled form name value)
-
+      attr :rest, :global, include: ~w(href navigate patch method download name value disabled form)
+      attr :class, :any
+      attr :variant, :string, values: ~w(primary)
       slot :inner_block, required: true
 
-      def button(assigns) do
-        ~H\"\"\"
-        <button
-          type={@type}
-          class={["button", @class]}
-          {@rest}
-        >
-          {render_slot(@inner_block)}
-        </button>
-        \"\"\"
+      def button(%{rest: rest} = assigns) do
+        variants = %{"primary" => "button-primary", nil => "button"}
+
+        assigns =
+          assign_new(assigns, :class, fn ->
+            [Map.fetch!(variants, assigns[:variant])]
+          end)
+
+        if rest[:href] || rest[:navigate] || rest[:patch] do
+          ~H\"\"\"
+          <.link class={@class} {@rest}>
+            {render_slot(@inner_block)}
+          </.link>
+          \"\"\"
+        else
+          ~H\"\"\"
+          <button class={@class} {@rest}>
+            {render_slot(@inner_block)}
+          </button>
+          \"\"\"
+        end
       end
 
       @doc \"\"\"
@@ -490,6 +502,54 @@ defmodule Mix.Tasks.Phx.Install.Html do
           :error ->
             Igniter.Code.Common.add_code(zipper, code)
         end
+    end
+  end
+
+  defp add_browser_pipeline_to_router(igniter, web_module) do
+    router_module = Module.concat(web_module, Router)
+    layouts_module = Module.concat(web_module, Layouts)
+
+    browser_pipeline_code = """
+    pipeline :browser do
+      plug :accepts, ["html"]
+      plug :fetch_session
+      plug :fetch_flash
+      plug :put_root_layout, html: {#{inspect(layouts_module)}, :root}
+      plug :protect_from_forgery
+      plug :put_secure_browser_headers
+    end
+    """
+
+    case Igniter.Project.Module.find_and_update_module(igniter, router_module, fn zipper ->
+           case Igniter.Code.Function.move_to_function_call_in_current_scope(
+                  zipper,
+                  :pipeline,
+                  2,
+                  &Igniter.Code.Function.argument_equals?(&1, 0, :browser)
+                ) do
+             {:ok, _} ->
+               {:ok, zipper}
+
+             :error ->
+               case Igniter.Code.Function.move_to_function_call_in_current_scope(
+                      zipper,
+                      :pipeline,
+                      2,
+                      &Igniter.Code.Function.argument_equals?(&1, 0, :api)
+                    ) do
+                 {:ok, api_zipper} ->
+                   {:ok,
+                    Igniter.Code.Common.add_code(api_zipper, browser_pipeline_code,
+                      placement: :before
+                    )}
+
+                 :error ->
+                   {:ok, Igniter.Code.Common.add_code(zipper, browser_pipeline_code)}
+               end
+           end
+         end) do
+      {:ok, igniter} -> igniter
+      {:error, igniter} -> igniter
     end
   end
 
