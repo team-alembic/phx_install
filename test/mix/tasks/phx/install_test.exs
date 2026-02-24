@@ -140,25 +140,26 @@ defmodule Mix.Tasks.Phx.InstallTest do
 
       refute igniter.rewrite.sources["lib/test/application/mailer.ex"]
     end
+  end
 
-    test "--all flag enables all optional features" do
-      info = Mix.Tasks.Phx.Install.info([], nil)
-      assert :all in Keyword.keys(info.schema)
-      assert info.defaults[:all] == false
-    end
-
-    test "--all overrides --no-* flags" do
+  describe "phx_install.install" do
+    test "--remove-after-install removes :phx_install from deps" do
       igniter =
         test_project()
-        |> Igniter.compose_task("phx.install", [
+        |> Igniter.Project.Deps.add_dep({:phx_install, "~> 0.1"})
+        |> Igniter.compose_task("phx_install.install", [
+          "--remove-after-install",
+          "--no-live",
+          "--no-assets",
+          "--no-gettext",
+          "--no-dashboard",
           "--no-ecto",
-          "--no-mailer",
-          "--all"
+          "--no-mailer"
         ])
         |> apply_igniter!()
 
-      assert igniter.rewrite.sources["lib/test/repo.ex"]
-      assert igniter.rewrite.sources["lib/test/application/mailer.ex"]
+      mix_exs = Rewrite.Source.get(igniter.rewrite.sources["mix.exs"], :content)
+      refute mix_exs =~ "phx_install"
     end
   end
 end

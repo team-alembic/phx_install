@@ -11,6 +11,7 @@ defmodule PhxInstall.MixProject do
       elixir: "~> 1.17",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
+      dialyzer: [plt_add_apps: [:igniter, :mix, :rewrite, :sourceror]],
       description: "Igniter-based installers for Phoenix Framework",
       package: package(),
       docs: docs()
@@ -25,12 +26,12 @@ defmodule PhxInstall.MixProject do
 
   defp deps do
     [
-      {:mix_audit, "~> 2.0", only: [:dev, :test]},
-      {:doctor, "~> 0.22", only: [:dev, :test]},
-      {:dialyxir, "~> 1.0", only: [:dev, :test]},
-      {:credo, "~> 1.0", only: [:dev, :test]},
-      {:ex_check, "~> 0.16", only: [:dev, :test]},
-      {:igniter, "~> 0.5"},
+      {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
+      {:doctor, "~> 0.22", only: [:dev, :test], runtime: false},
+      {:dialyxir, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
+      {:ex_check, "~> 0.16", only: [:dev, :test], runtime: false},
+      {:igniter, "~> 0.5", runtime: false},
       {:ex_doc, "~> 0.34", only: :dev, runtime: false},
       {:phx_new, "~> 1.7", only: :test, runtime: false}
     ]

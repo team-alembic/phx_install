@@ -21,7 +21,7 @@ defmodule Mix.Tasks.PhxInstall.Install do
   - `--gettext` / `--no-gettext` - Include Gettext i18n (default: true)
   - `--dashboard` / `--no-dashboard` - Include LiveDashboard (default: true)
   - `--page` / `--no-page` - Include stock homepage (default: true)
-  - `--all` - Enable all optional features, overriding any `--no-*` flags
+  - `--remove-after-install` / `--no-remove-after-install` - Remove `:phx_install` from deps after installation (default: false)
 
   ## Examples
 
@@ -33,6 +33,9 @@ defmodule Mix.Tasks.PhxInstall.Install do
 
       # Skip database and mailer
       mix igniter.install phx_install --no-ecto --no-mailer
+
+      # Install and remove phx_install from deps
+      mix igniter.install phx_install --remove-after-install
   """
   use Igniter.Mix.Task
 
@@ -42,24 +45,24 @@ defmodule Mix.Tasks.PhxInstall.Install do
       group: :phx_install,
       example: "mix igniter.install phx_install",
       schema: [
-        ecto: :boolean,
-        mailer: :boolean,
-        live: :boolean,
         assets: :boolean,
-        gettext: :boolean,
         dashboard: :boolean,
+        ecto: :boolean,
+        gettext: :boolean,
+        live: :boolean,
+        mailer: :boolean,
         page: :boolean,
-        all: :boolean
+        remove_after_install: :boolean
       ],
       defaults: [
-        ecto: true,
-        mailer: true,
-        live: true,
         assets: true,
-        gettext: true,
         dashboard: true,
+        ecto: true,
+        gettext: true,
+        live: true,
+        mailer: true,
         page: true,
-        all: false
+        remove_after_install: false
       ],
       composes: ["phx.install"]
     }
@@ -67,6 +70,14 @@ defmodule Mix.Tasks.PhxInstall.Install do
 
   @impl Igniter.Mix.Task
   def igniter(igniter) do
-    Igniter.compose_task(igniter, "phx.install")
+    opts = igniter.args.options
+
+    igniter = Igniter.compose_task(igniter, "phx.install")
+
+    if opts[:remove_after_install] do
+      Igniter.Project.Deps.remove_dep(igniter, :phx_install)
+    else
+      igniter
+    end
   end
 end

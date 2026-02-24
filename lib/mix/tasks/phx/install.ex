@@ -18,7 +18,6 @@ defmodule Mix.Tasks.Phx.Install do
   - `--gettext` / `--no-gettext` - Include Gettext i18n (default: true)
   - `--dashboard` / `--no-dashboard` - Include LiveDashboard (default: true)
   - `--page` / `--no-page` - Include stock homepage (default: true)
-  - `--all` - Enable all optional features, overriding any `--no-*` flags
 
   ## What Gets Installed
 
@@ -49,8 +48,6 @@ defmodule Mix.Tasks.Phx.Install do
       # Skip database and mailer
       mix phx.install --no-ecto --no-mailer
 
-      # Enable everything (overrides any --no-* flags)
-      mix phx.install --all
   """
   use Igniter.Mix.Task
 
@@ -60,24 +57,22 @@ defmodule Mix.Tasks.Phx.Install do
       group: :phoenix,
       example: "mix phx.install --live --assets",
       schema: [
-        ecto: :boolean,
-        mailer: :boolean,
-        live: :boolean,
         assets: :boolean,
-        gettext: :boolean,
         dashboard: :boolean,
-        page: :boolean,
-        all: :boolean
+        ecto: :boolean,
+        gettext: :boolean,
+        live: :boolean,
+        mailer: :boolean,
+        page: :boolean
       ],
       defaults: [
-        ecto: true,
-        mailer: true,
-        live: true,
         assets: true,
-        gettext: true,
         dashboard: true,
-        page: true,
-        all: false
+        ecto: true,
+        gettext: true,
+        live: true,
+        mailer: true,
+        page: true
       ],
       composes: [
         "phx.install.core",
@@ -98,7 +93,7 @@ defmodule Mix.Tasks.Phx.Install do
 
   @impl Igniter.Mix.Task
   def igniter(igniter) do
-    opts = resolve_opts(igniter.args.options)
+    opts = igniter.args.options
 
     igniter
     |> Igniter.compose_task("phx.install.core")
@@ -113,22 +108,6 @@ defmodule Mix.Tasks.Phx.Install do
     |> maybe_compose("phx.install.components", opts[:live])
     |> maybe_compose("phx.install.page", opts[:live] && opts[:page])
     |> maybe_compose("phx.install.dashboard", opts[:live] && opts[:dashboard])
-  end
-
-  defp resolve_opts(opts) do
-    if opts[:all] do
-      Keyword.merge(opts,
-        ecto: true,
-        mailer: true,
-        live: true,
-        assets: true,
-        gettext: true,
-        dashboard: true,
-        page: true
-      )
-    else
-      opts
-    end
   end
 
   defp maybe_compose(igniter, _task, false), do: igniter
