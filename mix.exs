@@ -34,6 +34,7 @@ defmodule PhxInstall.MixProject do
       {:doctor, "~> 0.22", only: [:dev, :test], runtime: false},
       {:ex_check, "~> 0.16", only: [:dev, :test], runtime: false},
       {:ex_doc, "~> 0.34", only: [:dev, :test], runtime: false},
+      {:git_ops, "~> 2.0", only: [:dev, :test], runtime: false},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
       {:phx_new, "~> 1.7", only: :test, runtime: false}
     ]
@@ -41,9 +42,10 @@ defmodule PhxInstall.MixProject do
 
   defp package do
     [
-      maintainers: ["Team Alembic"],
+      maintainers: ["James Harton <james.harton@alembic.com.au>"],
       licenses: ["Apache-2.0"],
-      links: %{"GitHub" => @source_url}
+      links: %{"GitHub" => @source_url},
+      source_url: @source_url
     ]
   end
 
