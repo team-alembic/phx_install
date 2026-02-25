@@ -1,5 +1,10 @@
 # Phoenix Installer
 
+[![CI](https://github.com/team-alembic/phx_install/actions/workflows/ci.yml/badge.svg)](https://github.com/team-alembic/phx_install/actions/workflows/ci.yml)
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache--2.0-green.svg)](https://opensource.org/licenses/Apache-2.0)
+[![Hex version badge](https://img.shields.io/hexpm/v/phx_install.svg)](https://hex.pm/packages/phx_install)
+[![Hexdocs badge](https://img.shields.io/badge/docs-hexdocs-purple)](https://hexdocs.pm/phx_install)
+
 An alternative to `mix phx.new` that installs Phoenix into any Elixir project — new or existing — using [Igniter](https://hex.pm/packages/igniter) for AST-aware code generation.
 
 Instead of generating a project from a template, phx_install composes individual installer tasks that each add a specific feature (endpoint, router, LiveView, etc.). Each task manipulates your project's actual AST, so it can safely merge into existing code rather than overwriting it.
