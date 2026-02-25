@@ -51,7 +51,8 @@ defmodule PhxInstall.MixProject do
 
   defp docs do
     [
-      main: "PhxInstall",
+      main: "readme",
+      extras: ["README.md"],
       source_url: @source_url,
       source_ref: "v#{@version}"
     ]

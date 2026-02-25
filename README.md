@@ -6,37 +6,37 @@ Instead of generating a project from a template, phx_install composes individual
 
 ## Quick Start
 
-### New Project
-
-```bash
-mix igniter.new my_app --install phx_install --only dev
-```
-
 ### Existing Project
 
-Add the dependency:
-
-```elixir
-def deps do
-  [
-    {:phx_install, "~> 0.1", only: :dev, runtime: false}
-  ]
-end
-```
-
-Then run:
+Install the default Phoenix stack (LiveView, assets, Gettext, LiveDashboard) into your project:
 
 ```bash
-mix deps.get
-mix phx.install
+mix igniter.install phx_install
 ```
 
-## Why Not `mix phx.new`?
+See [Options](#options) for flags to customise what gets installed.
 
-`mix phx.new` is a template-based generator that creates an entire project from scratch. That works well for greenfield apps, but falls short when you want to:
+To add the dependency without running the installer, and then explore the available tasks:
 
-- **Add Phoenix to an existing Elixir project** — phx_install merges Phoenix into your current code rather than requiring a fresh project.
-- **Install features incrementally** — start with an API-only app and add LiveView later with `mix phx.install.live`, without re-running the full generator.
+```bash
+mix igniter.add phx_install
+mix help phx.install
+```
+
+### New Project
+
+Create a new Elixir application with Phoenix installed:
+
+```bash
+mix igniter.new my_app --install phx_install
+```
+
+## How It Differs from `mix phx.new`
+
+`mix phx.new` is the standard Phoenix generator — it creates a complete project from a template and is the right choice for most greenfield apps. phx_install takes a different approach that's useful when you want to:
+
+- **Add Phoenix to an existing Elixir project** — phx_install merges Phoenix into your current code rather than starting from a fresh project.
+- **Install features incrementally** — start with an API-only app and add LiveView later with `mix phx.install.live`.
 - **Run it again safely** — every task is idempotent. Running it twice won't duplicate code or overwrite your changes.
 
 ## Options
@@ -96,3 +96,9 @@ mix test --include acceptance
 ## Licence
 
 Apache-2.0
+
+---
+
+[![Alembic](logos/alembic.svg)](https://alembic.com.au)
+
+Proudly written and maintained by the team at [Alembic](https://alembic.com.au) for the Ash community.
