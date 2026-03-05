@@ -26,7 +26,7 @@ defmodule PhxInstall.MixProject do
 
   defp deps do
     [
-      {:igniter, "~> 0.5", optional: true, runtime: false},
+      {:igniter, "~> 0.7 and >= 0.7.3"},
 
       # dev/text
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
