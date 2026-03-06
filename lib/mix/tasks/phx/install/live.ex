@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Live do
+  @shortdoc "Adds Phoenix LiveView support"
   @moduledoc """
   Adds Phoenix LiveView support to an existing Phoenix application.
 
@@ -45,6 +46,7 @@ defmodule Mix.Tasks.Phx.Install.Live do
     live_signing_salt = opts[:live_signing_salt] || PhxInstall.random_string(8)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:phoenix_live_view, "~> 1.0"})
     |> Igniter.compose_task("phx.install.html")
     |> add_live_view_config(app_name, endpoint_module, live_signing_salt)
     |> add_socket_to_endpoint(endpoint_module)

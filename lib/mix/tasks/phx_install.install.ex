@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.PhxInstall.Install do
+  @shortdoc "Installs Phoenix via mix igniter.install"
   @moduledoc """
   Entry point for `mix igniter.install phx_install`.
 

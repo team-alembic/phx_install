@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install do
+  @shortdoc "Installs Phoenix into an Elixir project"
   @moduledoc """
   Installs Phoenix into an Elixir project.
 

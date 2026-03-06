@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Dashboard do
+  @shortdoc "Adds Phoenix LiveDashboard for development monitoring"
   @moduledoc """
   Adds Phoenix LiveDashboard for development monitoring.
 
@@ -40,6 +41,8 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
     telemetry_module = Module.concat(web_module, Telemetry)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
+    |> Igniter.Project.Deps.add_dep({:phoenix_live_dashboard, "~> 0.8"})
     |> add_dashboard_route(app_name, router_module, telemetry_module)
   end
 

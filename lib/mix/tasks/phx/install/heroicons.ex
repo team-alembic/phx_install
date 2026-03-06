@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Heroicons do
+  @shortdoc "Sets up Heroicon rendering"
   @moduledoc """
   Sets up Heroicon rendering for a Phoenix application.
 
@@ -43,6 +44,15 @@ defmodule Mix.Tasks.Phx.Install.Heroicons do
     web_module = Igniter.Libs.Phoenix.web_module(igniter)
 
     igniter
+    |> Igniter.Project.Deps.add_dep(
+      {:heroicons,
+       github: "tailwindlabs/heroicons",
+       tag: "v2.2.0",
+       sparse: "optimized",
+       app: false,
+       compile: false,
+       depth: 1}
+    )
     |> create_heroicons_js()
     |> append_plugin_to_app_css()
     |> add_icon_component(web_module)

@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Page do
+  @shortdoc "Adds a stock homepage"
   @moduledoc """
   Adds a stock homepage to a Phoenix application.
 
@@ -29,6 +30,7 @@ defmodule Mix.Tasks.Phx.Install.Page do
     web_module = Igniter.Libs.Phoenix.web_module(igniter)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
     |> create_page_controller(web_module)
     |> create_page_html(web_module)
     |> create_home_template(web_module)

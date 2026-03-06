@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Core do
+  @shortdoc "Installs core Phoenix application structure"
   @moduledoc """
   Installs the core Phoenix application structure.
 
@@ -48,6 +49,7 @@ defmodule Mix.Tasks.Phx.Install.Core do
     application_module = Module.concat(app_module, Application)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
     |> add_phoenix_extension()
     |> create_application_module(app_name, app_module, web_module, endpoint_module)
     |> set_application_mod(application_module)
@@ -148,7 +150,8 @@ defmodule Mix.Tasks.Phx.Install.Core do
          pubsub_server: #{inspect(Module.concat(app_module, :PubSub))},
          live_view: [signing_salt: #{inspect(secrets.signing_salt)}]
        ]
-       """)}
+       """)},
+      updater: fn zipper -> {:ok, zipper} end
     )
     |> Igniter.Project.Config.configure(
       "config.exs",
@@ -182,7 +185,8 @@ defmodule Mix.Tasks.Phx.Install.Core do
          debug_errors: true,
          secret_key_base: #{inspect(secrets.secret_key_base_dev)}
        ]
-       """)}
+       """)},
+      updater: fn zipper -> {:ok, zipper} end
     )
     |> Igniter.Project.Config.configure("dev.exs", app_name, [:dev_routes], true)
     |> Igniter.Project.Config.configure(
@@ -208,7 +212,8 @@ defmodule Mix.Tasks.Phx.Install.Core do
          secret_key_base: #{inspect(secrets.secret_key_base_test)},
          server: false
        ]
-       """)}
+       """)},
+      updater: fn zipper -> {:ok, zipper} end
     )
     |> Igniter.Project.Config.configure("test.exs", :logger, [:level], :warning)
     |> Igniter.Project.Config.configure("test.exs", :phoenix, [:plug_init_mode], :runtime)

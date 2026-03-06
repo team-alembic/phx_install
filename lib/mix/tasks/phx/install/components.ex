@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Components do
+  @shortdoc "Adds data display components for Phoenix generators"
   @moduledoc """
   Adds data display components required by Phoenix generators.
 

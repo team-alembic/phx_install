@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Gettext do
+  @shortdoc "Adds Gettext internationalisation support"
   @moduledoc """
   Adds Gettext (i18n) support to a Phoenix application.
 
@@ -33,6 +34,7 @@ defmodule Mix.Tasks.Phx.Install.Gettext do
     web_module = Igniter.Libs.Phoenix.web_module(igniter)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:gettext, "~> 0.26"})
     |> create_gettext_module(app_name, web_module)
     |> create_errors_pot()
     |> create_errors_po()

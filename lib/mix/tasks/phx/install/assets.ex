@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Assets do
+  @shortdoc "Sets up the asset pipeline with esbuild and Tailwind CSS"
   @moduledoc """
   Sets up the asset build pipeline with esbuild and Tailwind CSS.
 
@@ -62,6 +63,8 @@ defmodule Mix.Tasks.Phx.Install.Assets do
     tailwind? = opts[:tailwind]
 
     igniter
+    |> maybe_add_dep({:esbuild, "~> 0.10"}, esbuild?)
+    |> maybe_add_dep({:tailwind, "~> 0.3"}, tailwind?)
     |> add_runtime_dep_option(:esbuild, esbuild?)
     |> add_runtime_dep_option(:tailwind, tailwind?)
     |> create_app_js(web_module, esbuild?)
@@ -86,6 +89,11 @@ defmodule Mix.Tasks.Phx.Install.Assets do
   end
 
   defp add_runtime_dep_option(igniter, _dep, false), do: igniter
+
+  defp maybe_add_dep(igniter, dep, true),
+    do: Igniter.Project.Deps.add_dep(igniter, dep, on_exists: :skip)
+
+  defp maybe_add_dep(igniter, _dep, false), do: igniter
 
   defp create_app_js(igniter, _web_module, true) do
     content = """

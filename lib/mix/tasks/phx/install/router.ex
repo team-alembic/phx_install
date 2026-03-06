@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Router do
+  @shortdoc "Installs Phoenix Router with pipelines and error handling"
   @moduledoc """
   Installs Phoenix Router with pipelines and error handling.
 
@@ -31,6 +32,7 @@ defmodule Mix.Tasks.Phx.Install.Router do
     endpoint_module = Module.concat(web_module, Endpoint)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
     |> create_router(web_module)
     |> create_error_json(web_module)
     |> create_conn_case(web_module, endpoint_module)

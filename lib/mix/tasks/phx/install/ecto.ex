@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Ecto do
+  @shortdoc "Adds Ecto database support"
   @moduledoc """
   Adds Ecto database support to a Phoenix application.
 
@@ -51,9 +52,11 @@ defmodule Mix.Tasks.Phx.Install.Ecto do
     repo_module = Module.concat(app_module, Repo)
 
     adapter = igniter.args.options[:adapter] || "postgres"
-    {adapter_module, _} = adapter_config(adapter)
+    {adapter_module, adapter_dep} = adapter_config(adapter)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:ecto_sql, "~> 3.10"})
+    |> Igniter.Project.Deps.add_dep(adapter_dep)
     |> create_repo_module(app_name, app_module, adapter_module)
     |> configure_ecto_repos(app_name, repo_module)
     |> configure_dev_database(app_name, repo_module, adapter)

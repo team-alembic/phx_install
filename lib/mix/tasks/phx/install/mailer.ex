@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Mailer do
+  @shortdoc "Adds Swoosh mailer support"
   @moduledoc """
   Adds Swoosh mailer support to a Phoenix application.
 
@@ -31,15 +32,14 @@ defmodule Mix.Tasks.Phx.Install.Mailer do
   def igniter(igniter) do
     app_name = Igniter.Project.Application.app_name(igniter)
 
-    app_module =
-      Igniter.Project.Application.app_module(igniter) ||
-        Module.concat([Macro.camelize(to_string(app_name))])
+    app_module = Igniter.Project.Module.module_name_prefix(igniter)
 
     web_module = Igniter.Libs.Phoenix.web_module(igniter)
     mailer_module = Module.concat(app_module, Mailer)
     router_module = Module.concat(web_module, Router)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:swoosh, "~> 1.5"})
     |> create_mailer_module(app_name, mailer_module)
     |> configure_mailer(app_name, mailer_module)
     |> configure_test_mailer(app_name, mailer_module)

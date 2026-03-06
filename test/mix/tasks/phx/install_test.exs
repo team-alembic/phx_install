@@ -122,7 +122,7 @@ defmodule Mix.Tasks.Phx.InstallTest do
         ])
         |> apply_igniter!()
 
-      assert igniter.rewrite.sources["lib/test/application/mailer.ex"]
+      assert igniter.rewrite.sources["lib/test/mailer.ex"]
     end
 
     test "respects --no-mailer flag" do

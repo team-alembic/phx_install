@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Html do
+  @shortdoc "Adds HTML rendering support"
   @moduledoc """
   Adds HTML rendering support to a Phoenix application.
 
@@ -35,6 +36,8 @@ defmodule Mix.Tasks.Phx.Install.Html do
     endpoint_module = Module.concat(web_module, Endpoint)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
+    |> Igniter.Project.Deps.add_dep({:phoenix_html, "~> 4.1"})
     |> Igniter.Project.IgniterConfig.add_extension(Igniter.Extensions.Phoenix)
     |> create_core_components(web_module)
     |> create_layouts_module(web_module)

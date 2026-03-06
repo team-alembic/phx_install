@@ -1,4 +1,5 @@
 defmodule Mix.Tasks.Phx.Install.Endpoint do
+  @shortdoc "Installs Phoenix Endpoint, Telemetry, and web module"
   @moduledoc """
   Installs Phoenix Endpoint, Telemetry, and web module.
 
@@ -32,7 +33,8 @@ defmodule Mix.Tasks.Phx.Install.Endpoint do
       ],
       schema: [
         session_signing_salt: :string
-      ]
+      ],
+      composes: ["phx.install.core", "phx.install.router"]
     }
   end
 
@@ -46,6 +48,13 @@ defmodule Mix.Tasks.Phx.Install.Endpoint do
     session_signing_salt = opts[:session_signing_salt] || PhxInstall.random_string(8)
 
     igniter
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
+    |> Igniter.Project.Deps.add_dep({:bandit, "~> 1.5"})
+    |> Igniter.Project.Deps.add_dep({:dns_cluster, "~> 0.1"})
+    |> Igniter.Project.Deps.add_dep({:telemetry_metrics, "~> 1.0"})
+    |> Igniter.Project.Deps.add_dep({:telemetry_poller, "~> 1.0"})
+    |> Igniter.compose_task("phx.install.core")
+    |> Igniter.compose_task("phx.install.router")
     |> create_web_module(app_name, web_module, endpoint_module)
     |> create_telemetry_module(web_module)
     |> create_endpoint_module(app_name, web_module, endpoint_module, session_signing_salt)
