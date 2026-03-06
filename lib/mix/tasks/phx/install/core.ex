@@ -51,8 +51,8 @@ defmodule Mix.Tasks.Phx.Install.Core do
     igniter
     |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
     |> add_phoenix_extension()
-    |> create_application_module(app_name, app_module, web_module, endpoint_module)
     |> set_application_mod(application_module)
+    |> create_application_module(app_name, app_module, web_module, endpoint_module)
     |> set_project_listeners()
     |> configure_base_config(app_name, app_module, web_module, endpoint_module, secrets)
     |> configure_dev(app_name, endpoint_module, secrets)
@@ -100,9 +100,16 @@ defmodule Mix.Tasks.Phx.Install.Core do
 
   defp create_application_module(igniter, app_name, app_module, web_module, endpoint_module) do
     application_module = Module.concat(app_module, Application)
+    telemetry_module = Module.concat(web_module, :Telemetry)
+    pubsub_name = Module.concat(app_module, :PubSub)
 
-    Igniter.Project.Module.find_and_update_or_create_module(
-      igniter,
+    dns_cluster_opts =
+      quote do
+        [query: Application.get_env(unquote(app_name), :dns_cluster_query) || :ignore]
+      end
+
+    igniter
+    |> Igniter.Project.Module.find_and_update_or_create_module(
       application_module,
       """
       @moduledoc false
@@ -111,12 +118,7 @@ defmodule Mix.Tasks.Phx.Install.Core do
 
       @impl true
       def start(_type, _args) do
-        children = [
-          #{inspect(Module.concat(web_module, :Telemetry))},
-          {DNSCluster, query: Application.get_env(#{inspect(app_name)}, :dns_cluster_query) || :ignore},
-          {Phoenix.PubSub, name: #{inspect(Module.concat(app_module, :PubSub))}},
-          #{inspect(endpoint_module)}
-        ]
+        children = []
 
         opts = [strategy: :one_for_one, name: #{inspect(Module.concat(app_module, :Supervisor))}]
         Supervisor.start_link(children, opts)
@@ -129,6 +131,19 @@ defmodule Mix.Tasks.Phx.Install.Core do
       end
       """,
       fn zipper -> {:ok, zipper} end
+    )
+    |> Igniter.Project.Application.add_new_child(telemetry_module)
+    |> Igniter.Project.Application.add_new_child(
+      {DNSCluster, {:code, dns_cluster_opts}},
+      after: [telemetry_module]
+    )
+    |> Igniter.Project.Application.add_new_child(
+      {Phoenix.PubSub, [name: pubsub_name]},
+      after: [telemetry_module, DNSCluster]
+    )
+    |> Igniter.Project.Application.add_new_child(
+      endpoint_module,
+      after: [telemetry_module, DNSCluster, Phoenix.PubSub]
     )
   end
 
