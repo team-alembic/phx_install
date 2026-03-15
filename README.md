@@ -106,4 +106,4 @@ Apache-2.0
 
 [![Alembic](logos/alembic.svg)](https://alembic.com.au)
 
-Proudly written and maintained by the team at [Alembic](https://alembic.com.au) for the Ash community.
+Proudly written and maintained by the team at [Alembic](https://alembic.com.au) for the Elixir community.
