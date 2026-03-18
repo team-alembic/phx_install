@@ -5,6 +5,15 @@ See [Conventional Commits](Https://conventionalcommits.org) for commit guideline
 
 <!-- changelog -->
 
+## [v0.1.1](https://github.com/team-alembic/phx_install/compare/v0.1.0...v0.1.1) (2026-03-18)
+
+
+
+
+### Improvements:
+
+* use `add_new_child` to add supervision children individually by [@beam-bots](https://github.com/beam-bots)
+
 ## [v0.1.0](https://github.com/team-alembic/phx_install/compare/v0.1.0...v0.1.0) (2026-02-24)
 
 
