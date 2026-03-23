@@ -50,6 +50,9 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
   end
 
   defp add_dashboard_route(igniter, app_name, router_module, telemetry_module) do
+    dashboard_call =
+      ~s|live_dashboard "/dashboard", metrics: #{inspect(telemetry_module)}|
+
     dev_routes_code = """
     if Application.compile_env(#{inspect(app_name)}, :dev_routes) do
       import Phoenix.LiveDashboard.Router
@@ -57,7 +60,7 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
       scope "/dev" do
         pipe_through :browser
 
-        live_dashboard "/dashboard", metrics: #{inspect(telemetry_module)}
+        #{dashboard_call}
       end
     end
     """
@@ -69,33 +72,88 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
              [1, 2],
              &Igniter.Code.Function.argument_equals?(&1, 0, "/dashboard")
            ) do
-        {:ok, _} -> {:ok, zipper}
-        :error -> insert_dashboard_route(zipper, app_name, dev_routes_code)
+        {:ok, _} ->
+          {:ok, zipper}
+
+        :error ->
+          insert_dashboard_route(zipper, dashboard_call, dev_routes_code)
       end
     end)
   end
 
-  defp insert_dashboard_route(zipper, app_name, dev_routes_code) do
-    case find_dev_routes_block(zipper, app_name) do
-      {:ok, _} ->
-        {:warning,
-         Igniter.Util.Warning.formatted_warning(
-           "Found existing dev_routes block but couldn't add dashboard. Please add manually:",
-           dev_routes_code
-         )}
+  defp insert_dashboard_route(zipper, dashboard_call, dev_routes_code) do
+    case find_dev_routes_block(zipper) do
+      {:ok, dev_routes_zipper} ->
+        add_dashboard_to_existing_dev_scope(dev_routes_zipper, dashboard_call, dev_routes_code)
 
       :error ->
         {:ok, Igniter.Code.Common.add_code(zipper, dev_routes_code)}
     end
   end
 
-  defp find_dev_routes_block(zipper, app_name) do
+  defp add_dashboard_to_existing_dev_scope(dev_routes_zipper, dashboard_call, dev_routes_code) do
+    with {:ok, body_zipper} <- Igniter.Code.Common.move_to_do_block(dev_routes_zipper),
+         {:ok, scope_zipper} <-
+           Igniter.Code.Function.move_to_function_call_in_current_scope(
+             body_zipper,
+             :scope,
+             [1, 2],
+             &Igniter.Code.Function.argument_equals?(&1, 0, "/dev")
+           ) do
+      import_code = "import Phoenix.LiveDashboard.Router"
+      with_import = Igniter.Code.Common.add_code(scope_zipper, import_code, placement: :before)
+
+      fresh_zipper =
+        with_import
+        |> Sourceror.Zipper.root()
+        |> Sourceror.Zipper.zip()
+
+      with {:ok, dev_routes2} <- find_dev_routes_block(fresh_zipper),
+           {:ok, body2} <- Igniter.Code.Common.move_to_do_block(dev_routes2),
+           {:ok, scope2} <-
+             Igniter.Code.Function.move_to_function_call_in_current_scope(
+               body2,
+               :scope,
+               [1, 2],
+               &Igniter.Code.Function.argument_equals?(&1, 0, "/dev")
+             ),
+           {:ok, scope_body2} <- Igniter.Code.Common.move_to_do_block(scope2) do
+        {:ok, Igniter.Code.Common.add_code(scope_body2, dashboard_call)}
+      else
+        _ ->
+          {:warning,
+           Igniter.Util.Warning.formatted_warning(
+             "Found existing dev_routes block but couldn't add dashboard route. Please add manually:",
+             dev_routes_code
+           )}
+      end
+    else
+      _ ->
+        {:warning,
+         Igniter.Util.Warning.formatted_warning(
+           "Found existing dev_routes block but couldn't add dashboard route. Please add manually:",
+           dev_routes_code
+         )}
+    end
+  end
+
+  defp find_dev_routes_block(zipper) do
     Igniter.Code.Common.move_to(zipper, fn z ->
       case Sourceror.Zipper.node(z) do
-        {:if, _, [{:compile_env, _, [_, ^app_name, :dev_routes | _]} | _]} -> true
-        {:if, _, [{:compile_env, _, [:erlang, :binary_to_atom, [^app_name | _], _]} | _]} -> true
-        _ -> false
+        {:if, _,
+         [
+           {{:., _, [{:__aliases__, _, [:Application]}, :compile_env]}, _, args}
+           | _
+         ]} ->
+          args_contain_dev_routes?(args)
+
+        _ ->
+          false
       end
     end)
   end
+
+  defp args_contain_dev_routes?([_, {:__block__, _, [:dev_routes]} | _]), do: true
+  defp args_contain_dev_routes?([_, :dev_routes | _]), do: true
+  defp args_contain_dev_routes?(_), do: false
 end

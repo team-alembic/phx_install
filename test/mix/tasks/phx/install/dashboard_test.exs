@@ -113,5 +113,57 @@ defmodule Mix.Tasks.Phx.Install.DashboardTest do
 
       assert result.issues == []
     end
+
+    test "standalone invocation composes prerequisites and adds browser pipeline" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.dashboard", ["--session-signing-salt", "sessionsalt"])
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "lib/test_web/router.ex")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ "pipeline :browser"
+      assert content =~ "pipe_through" and content =~ ":browser"
+      assert content =~ "live_dashboard"
+    end
+
+    test "adds live_dashboard into existing dev_routes block" do
+      dev_routes_block = """
+      if Application.compile_env(:test, :dev_routes) do
+        scope "/dev" do
+          pipe_through :browser
+        end
+      end
+      """
+
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.router")
+        |> apply_igniter!()
+        |> Igniter.Project.Module.find_and_update_module!(
+          TestWeb.Router,
+          fn zipper ->
+            {:ok, Igniter.Code.Common.add_code(zipper, dev_routes_block)}
+          end
+        )
+        |> apply_igniter!()
+        |> Igniter.compose_task("phx.install.dashboard")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "lib/test_web/router.ex")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ "live_dashboard"
+      assert content =~ "import Phoenix.LiveDashboard.Router"
+
+      occurrences =
+        content
+        |> String.split("dev_routes")
+        |> length()
+
+      assert occurrences == 2, "expected exactly one dev_routes block, found #{occurrences - 1}"
+    end
   end
 end
