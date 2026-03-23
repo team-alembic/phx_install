@@ -29,7 +29,7 @@ defmodule Mix.Tasks.Phx.Install.RouterTest do
     test "creates error_json module" do
       test_project()
       |> Igniter.compose_task("phx.install.router")
-      |> assert_creates("lib/test_web/error_json.ex")
+      |> assert_creates("lib/test_web/controllers/error_json.ex")
     end
 
     test "error_json has correct structure" do
@@ -38,7 +38,7 @@ defmodule Mix.Tasks.Phx.Install.RouterTest do
         |> Igniter.compose_task("phx.install.router")
         |> apply_igniter!()
 
-      source = Rewrite.source!(igniter.rewrite, "lib/test_web/error_json.ex")
+      source = Rewrite.source!(igniter.rewrite, "lib/test_web/controllers/error_json.ex")
       content = Rewrite.Source.get(source, :content)
 
       assert content =~ "defmodule TestWeb.ErrorJSON"
@@ -77,7 +77,7 @@ defmodule Mix.Tasks.Phx.Install.RouterTest do
         |> apply_igniter!()
 
       assert igniter.rewrite.sources["lib/my_app_web/router.ex"]
-      assert igniter.rewrite.sources["lib/my_app_web/error_json.ex"]
+      assert igniter.rewrite.sources["lib/my_app_web/controllers/error_json.ex"]
       assert igniter.rewrite.sources["lib/my_app_web/conn_case.ex"]
 
       router_content =

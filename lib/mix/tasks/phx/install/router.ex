@@ -22,7 +22,8 @@ defmodule Mix.Tasks.Phx.Install.Router do
   def info(_argv, _composing_task) do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
-      example: "mix phx.install.router"
+      example: "mix phx.install.router",
+      composes: ["phx.install.core"]
     }
   end
 
@@ -33,6 +34,7 @@ defmodule Mix.Tasks.Phx.Install.Router do
 
     igniter
     |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
+    |> Igniter.compose_task("phx.install.core")
     |> create_router(web_module)
     |> create_error_json(web_module)
     |> create_conn_case(web_module, endpoint_module)

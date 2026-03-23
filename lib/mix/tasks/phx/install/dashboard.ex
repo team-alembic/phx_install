@@ -29,7 +29,8 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.dashboard",
-      adds_deps: [{:phoenix_live_dashboard, "~> 0.8"}]
+      adds_deps: [{:phoenix_live_dashboard, "~> 0.8"}],
+      composes: ["phx.install.endpoint", "phx.install.live"]
     }
   end
 
@@ -43,6 +44,8 @@ defmodule Mix.Tasks.Phx.Install.Dashboard do
     igniter
     |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
     |> Igniter.Project.Deps.add_dep({:phoenix_live_dashboard, "~> 0.8"})
+    |> Igniter.compose_task("phx.install.endpoint")
+    |> Igniter.compose_task("phx.install.live")
     |> add_dashboard_route(app_name, router_module, telemetry_module)
   end
 
