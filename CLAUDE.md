@@ -29,9 +29,24 @@ mix format
 
 ### Task Composition
 
-The main orchestrator `Mix.Tasks.Phx.Install` (`lib/mix/tasks/phx/install.ex`) composes individual installer tasks. Core tasks always run; optional tasks are controlled by flags (`--live`, `--assets`, `--gettext`, `--dashboard`).
+The main orchestrator `Mix.Tasks.Phx.Install` (`lib/mix/tasks/phx/install.ex`) composes individual installer tasks. Core tasks always run; optional tasks are controlled by flags (`--live`, `--assets`, `--gettext`, `--dashboard`, `--css`, `--ui`).
 
-**Composition order:** core → endpoint → router → (optional: live, gettext, assets, dashboard)
+**Composition order:** core → endpoint → router → (optional: ecto, mailer, live, gettext, assets, heroicons, html, components, page, dashboard)
+
+### Pluggable Architecture
+
+Several features use a dynamic task composition pattern where an orchestrator selects an implementation based on a flag:
+
+- **CSS framework** (`--css`): `assets/css.ex` orchestrator → `assets/css/tailwind.ex` (or future alternatives)
+- **UI components** (`--ui`): `html.ex` orchestrator → `html/daisy.ex` or `html/tailwind.ex`
+- **Data display components** (`--ui`): `components.ex` orchestrator → `components/daisy.ex` or `components/tailwind.ex`
+- **JS bundler** (`--bundler`): `assets.ex` orchestrator → `assets/esbuild.ex` (or future alternatives)
+
+Each orchestrator dynamically composes `phx.install.{area}.#{variant}` based on the flag value.
+
+### CSS Composition
+
+Each task that needs CSS creates its own file (e.g. `assets/css/phx-tailwind.css`, `assets/css/phx-daisy.css`, `assets/css/phx-heroicons.css`) and appends an `@import` line to `assets/css/app.css`. Tailwind v4 flattens imports before processing directives, so `@plugin`/`@source`/`@custom-variant` in imported files work correctly.
 
 ### Task Pattern
 
@@ -45,9 +60,11 @@ Tasks are idempotent — they use `find_and_update_or_create_module/4` and `crea
 
 ### Task Dependency Graph
 
-- `phx.install.live` composes `phx.install.html`
+- `phx.install.live` composes `phx.install.html` (passing `--ui` through)
+- `phx.install.html` composes `phx.install.html.{ui}` (daisy or tailwind)
+- `phx.install.components` composes `phx.install.components.{ui}`
+- `phx.install.assets` composes `phx.install.assets.css.{css}` (tailwind)
 - `phx.install.dashboard` requires live (guarded by `opts[:live] && opts[:dashboard]`)
-- `phx.install.html` is not directly invoked by the orchestrator — it's pulled in via `live`
 
 ### Entry Point for Package Installation
 

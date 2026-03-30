@@ -46,7 +46,22 @@ mix igniter.new my_app --install phx_install
 
 ## Options
 
-By default, `mix phx.install` sets up a full Phoenix application with LiveView, assets, Gettext, and LiveDashboard. Use flags to opt out:
+By default, `mix phx.install` sets up a full Phoenix application with DaisyUI components, LiveView, assets, Gettext, and LiveDashboard.
+
+### UI and CSS options
+
+```bash
+# Default: DaisyUI components with Tailwind CSS (matches phx.new)
+mix phx.install
+
+# Plain Tailwind CSS without DaisyUI
+mix phx.install --ui tailwind
+
+# No CSS framework
+mix phx.install --css none --ui none
+```
+
+### Feature flags
 
 ```bash
 # API-only (no LiveView, no assets)
@@ -80,9 +95,9 @@ Each feature is a standalone task. The orchestrator (`mix phx.install`) composes
 | `phx.install.core`      | Application module, config files, base dependencies    |
 | `phx.install.endpoint`  | Phoenix.Endpoint, Telemetry, web module                |
 | `phx.install.router`    | Router with pipelines, error handling                  |
-| `phx.install.html`      | HTML components, layouts, error pages                  |
-| `phx.install.live`      | LiveView socket, helpers, and macros (composes `html`) |
-| `phx.install.assets`    | esbuild and Tailwind CSS                               |
+| `phx.install.html`      | HTML components, layouts, error pages (`--ui daisy\|tailwind`) |
+| `phx.install.live`      | LiveView socket, helpers, and macros (composes `html`)        |
+| `phx.install.assets`    | esbuild, CSS framework (`--css tailwind\|none`)               |
 | `phx.install.gettext`   | Internationalisation with Gettext                      |
 | `phx.install.dashboard` | Phoenix LiveDashboard (dev only)                       |
 | `phx.install.ecto`      | Ecto database support with Repo                        |
