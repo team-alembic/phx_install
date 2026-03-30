@@ -699,32 +699,34 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
   defp download_vendor_file(igniter, filename) do
     path = "assets/vendor/#{filename}"
 
-    case Rewrite.source(igniter.rewrite, path) do
-      {:ok, _} ->
-        igniter
+    if vendor_file_exists?(igniter, path) do
+      igniter
+    else
+      fetch_and_create_vendor_file(igniter, path, filename)
+    end
+  end
 
-      {:error, _} ->
-        if File.exists?(path) do
-          igniter
-        else
-          url = "#{@daisyui_base_url}/#{filename}"
+  defp vendor_file_exists?(igniter, path) do
+    match?({:ok, _}, Rewrite.source(igniter.rewrite, path)) or File.exists?(path)
+  end
 
-          case fetch_url(url) do
-            {:ok, body} ->
-              Igniter.create_new_file(igniter, path, body, on_exists: :skip)
+  defp fetch_and_create_vendor_file(igniter, path, filename) do
+    url = "#{@daisyui_base_url}/#{filename}"
 
-            {:error, reason} ->
-              Igniter.add_notice(
-                igniter,
-                """
-                Could not download #{filename} from #{url}: #{reason}
+    case fetch_url(url) do
+      {:ok, body} ->
+        Igniter.create_new_file(igniter, path, body, on_exists: :skip)
 
-                Please download it manually:
-                  curl -sLo #{path} #{url}
-                """
-              )
-          end
-        end
+      {:error, reason} ->
+        Igniter.add_notice(
+          igniter,
+          """
+          Could not download #{filename} from #{url}: #{reason}
+
+          Please download it manually:
+            curl -sLo #{path} #{url}
+          """
+        )
     end
   end
 
