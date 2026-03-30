@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Phx.Install.PageTest do
 
     test_project(app_name: app_name)
     |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-    |> Igniter.compose_task("phx.install.html")
+    |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
     |> Igniter.compose_task("phx.install.router")
   end
 

@@ -6,7 +6,12 @@ defmodule Mix.Tasks.Phx.Install.ComponentsTest do
   defp project_with_live do
     test_project()
     |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-    |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+    |> Igniter.compose_task("phx.install.live", [
+      "--live-signing-salt",
+      "livesalt1",
+      "--ui",
+      "tailwind"
+    ])
     |> apply_igniter!()
   end
 
@@ -68,7 +73,12 @@ defmodule Mix.Tasks.Phx.Install.ComponentsTest do
       igniter =
         test_project(app_name: :my_app)
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> Igniter.compose_task("phx.install.live", [
+          "--live-signing-salt",
+          "livesalt1",
+          "--ui",
+          "tailwind"
+        ])
         |> apply_igniter!()
         |> Igniter.compose_task("phx.install.components")
         |> apply_igniter!()

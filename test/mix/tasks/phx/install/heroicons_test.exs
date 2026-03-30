@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Phx.Install.HeroiconsTest do
   defp project_with_assets do
     test_project()
     |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-    |> Igniter.compose_task("phx.install.html")
+    |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
     |> Igniter.compose_task("phx.install.assets")
     |> apply_igniter!()
   end
@@ -37,7 +37,19 @@ defmodule Mix.Tasks.Phx.Install.HeroiconsTest do
       assert content =~ "matchComponents"
     end
 
-    test "appends @plugin to app.css" do
+    test "creates phx-heroicons.css with plugin directive" do
+      igniter =
+        project_with_assets()
+        |> Igniter.compose_task("phx.install.heroicons")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "assets/css/phx-heroicons.css")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ ~s|@plugin "../vendor/heroicons";|
+    end
+
+    test "appends @import to app.css" do
       igniter =
         project_with_assets()
         |> Igniter.compose_task("phx.install.heroicons")
@@ -46,7 +58,7 @@ defmodule Mix.Tasks.Phx.Install.HeroiconsTest do
       source = Rewrite.source!(igniter.rewrite, "assets/css/app.css")
       content = Rewrite.Source.get(source, :content)
 
-      assert content =~ ~s|@plugin "../vendor/heroicons";|
+      assert content =~ ~s|@import "./phx-heroicons.css";|
     end
 
     test "adds icon/1 to CoreComponents" do
@@ -77,7 +89,7 @@ defmodule Mix.Tasks.Phx.Install.HeroiconsTest do
       igniter =
         test_project(app_name: :my_app)
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.html")
+        |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
         |> Igniter.compose_task("phx.install.assets")
         |> apply_igniter!()
         |> Igniter.compose_task("phx.install.heroicons")
