@@ -12,7 +12,7 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
     test "creates CoreComponents module" do
       test_project()
       |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-      |> Igniter.compose_task("phx.install.html")
+      |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
       |> assert_creates("lib/test_web/components/core_components.ex")
     end
 
@@ -20,7 +20,7 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.html")
+        |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/components/core_components.ex")
@@ -33,7 +33,7 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
     test "creates Layouts module" do
       test_project()
       |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-      |> Igniter.compose_task("phx.install.html")
+      |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
       |> assert_creates("lib/test_web/components/layouts.ex")
     end
 
@@ -41,7 +41,7 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.html")
+        |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/components/layouts.ex")
@@ -54,21 +54,21 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
     test "creates root.html.heex layout" do
       test_project()
       |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-      |> Igniter.compose_task("phx.install.html")
+      |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
       |> assert_creates("lib/test_web/components/layouts/root.html.heex")
     end
 
     test "creates app.html.heex layout" do
       test_project()
       |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-      |> Igniter.compose_task("phx.install.html")
+      |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
       |> assert_creates("lib/test_web/components/layouts/app.html.heex")
     end
 
     test "creates ErrorHTML module" do
       test_project()
       |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-      |> Igniter.compose_task("phx.install.html")
+      |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
       |> assert_creates("lib/test_web/controllers/error_html.ex")
     end
 
@@ -76,7 +76,7 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.html")
+        |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/controllers/error_html.ex")
@@ -90,7 +90,7 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.html")
+        |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web.ex")
@@ -104,7 +104,7 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.html")
+        |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web.ex")
@@ -120,7 +120,7 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
       igniter =
         test_project(app_name: :my_app)
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.html")
+        |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       assert igniter.rewrite.sources["lib/my_app_web/components/core_components.ex"]
@@ -141,11 +141,11 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.html")
+        |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       igniter
-      |> Igniter.compose_task("phx.install.html")
+      |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
       |> assert_unchanged()
     end
   end

@@ -142,6 +142,35 @@ defmodule Mix.Tasks.Phx.InstallTest do
     end
   end
 
+  describe "phx.install --css and --ui options" do
+    test "defaults to css: tailwind and ui: daisy" do
+      info = Mix.Tasks.Phx.Install.info([], nil)
+
+      assert info.defaults[:css] == "tailwind"
+      assert info.defaults[:ui] == "daisy"
+    end
+
+    test "rejects --ui daisy with --css none" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install", [
+          "--ui",
+          "daisy",
+          "--css",
+          "none",
+          "--no-live",
+          "--no-assets",
+          "--no-gettext",
+          "--no-dashboard",
+          "--no-ecto",
+          "--no-mailer"
+        ])
+
+      assert igniter.issues != []
+      assert Enum.any?(igniter.issues, &String.contains?(&1, "daisy requires --css tailwind"))
+    end
+  end
+
   describe "phx_install.install" do
     test "--remove-after-install removes :phx_install from deps" do
       igniter =

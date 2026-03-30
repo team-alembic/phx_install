@@ -11,11 +11,32 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
       |> assert_creates("assets/js/app.js")
     end
 
-    test "creates app.css" do
-      test_project()
-      |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-      |> Igniter.compose_task("phx.install.assets")
-      |> assert_creates("assets/css/app.css")
+    test "creates app.css with import lines" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.assets")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "assets/css/app.css")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ ~s|@import "./phx-tailwind.css";|
+    end
+
+    test "creates phx-tailwind.css with tailwind foundation" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.assets")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "assets/css/phx-tailwind.css")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ ~s|@import "tailwindcss" source(none);|
+      assert content =~ ~s|@custom-variant phx-click-loading|
+      assert content =~ ~s|data-phx-session|
     end
 
     test "creates static files" do
@@ -111,7 +132,7 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
 
       assert content =~ "my_app:"
 
-      source = Rewrite.source!(igniter.rewrite, "assets/css/app.css")
+      source = Rewrite.source!(igniter.rewrite, "assets/css/phx-tailwind.css")
       content = Rewrite.Source.get(source, :content)
 
       assert content =~ "my_app_web"
@@ -130,12 +151,12 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
     end
   end
 
-  describe "phx.install.assets --no-tailwind" do
+  describe "phx.install.assets --css none" do
     test "skips tailwind configuration" do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.assets", ["--no-tailwind"])
+        |> Igniter.compose_task("phx.install.assets", ["--css", "none"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "config/config.exs")
@@ -148,7 +169,7 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
     test "still creates JS assets" do
       test_project()
       |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-      |> Igniter.compose_task("phx.install.assets", ["--no-tailwind"])
+      |> Igniter.compose_task("phx.install.assets", ["--css", "none"])
       |> assert_creates("assets/js/app.js")
     end
   end
@@ -218,6 +239,7 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
         |> apply_igniter!()
 
       assert Map.has_key?(igniter.rewrite.sources, "assets/css/app.css")
+      assert Map.has_key?(igniter.rewrite.sources, "assets/css/phx-tailwind.css")
     end
   end
 end
