@@ -47,23 +47,27 @@ defmodule Mix.Tasks.PhxInstall.Install do
       example: "mix igniter.install phx_install",
       schema: [
         assets: :boolean,
+        css: :string,
         dashboard: :boolean,
         ecto: :boolean,
         gettext: :boolean,
         live: :boolean,
         mailer: :boolean,
         page: :boolean,
-        remove_after_install: :boolean
+        remove_after_install: :boolean,
+        ui: :string
       ],
       defaults: [
         assets: true,
+        css: "tailwind",
         dashboard: true,
         ecto: true,
         gettext: true,
         live: true,
         mailer: true,
         page: true,
-        remove_after_install: false
+        remove_after_install: false,
+        ui: "daisy"
       ],
       composes: ["phx.install"]
     }
