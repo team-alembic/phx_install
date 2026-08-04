@@ -22,12 +22,17 @@ defmodule Mix.Tasks.PhxInstall.Install do
   - `--gettext` / `--no-gettext` - Include Gettext i18n (default: true)
   - `--dashboard` / `--no-dashboard` - Include LiveDashboard (default: true)
   - `--page` / `--no-page` - Include stock homepage (default: true)
+  - `--css` - CSS framework: "tailwind" (default) or "none"
+  - `--ui` - UI component library: "daisy" (default), "tailwind", or "none"
   - `--remove-after-install` / `--no-remove-after-install` - Remove `:phx_install` from deps after installation (default: false)
 
   ## Examples
 
       # Install with all defaults
       mix igniter.install phx_install
+
+      # Plain Tailwind CSS (no DaisyUI)
+      mix igniter.install phx_install --ui tailwind
 
       # API-only (no LiveView, no assets)
       mix igniter.install phx_install --no-live --no-assets
@@ -47,23 +52,27 @@ defmodule Mix.Tasks.PhxInstall.Install do
       example: "mix igniter.install phx_install",
       schema: [
         assets: :boolean,
+        css: :string,
         dashboard: :boolean,
         ecto: :boolean,
         gettext: :boolean,
         live: :boolean,
         mailer: :boolean,
         page: :boolean,
-        remove_after_install: :boolean
+        remove_after_install: :boolean,
+        ui: :string
       ],
       defaults: [
         assets: true,
+        css: "tailwind",
         dashboard: true,
         ecto: true,
         gettext: true,
         live: true,
         mailer: true,
         page: true,
-        remove_after_install: false
+        remove_after_install: false,
+        ui: "daisy"
       ],
       composes: ["phx.install"]
     }

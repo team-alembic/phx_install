@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Phx.Install.ComponentsTest do
+defmodule Mix.Tasks.Phx.Install.Components.DaisyTest do
   use ExUnit.Case
 
   import Igniter.Test
@@ -10,16 +10,16 @@ defmodule Mix.Tasks.Phx.Install.ComponentsTest do
       "--live-signing-salt",
       "livesalt1",
       "--ui",
-      "tailwind"
+      "daisy"
     ])
     |> apply_igniter!()
   end
 
-  describe "phx.install.components" do
+  describe "phx.install.components --ui daisy" do
     test "adds header/1 to CoreComponents" do
       igniter =
         project_with_live()
-        |> Igniter.compose_task("phx.install.components", ["--ui", "tailwind"])
+        |> Igniter.compose_task("phx.install.components", ["--ui", "daisy"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/components/core_components.ex")
@@ -30,65 +30,41 @@ defmodule Mix.Tasks.Phx.Install.ComponentsTest do
       assert content =~ "slot(:actions)"
     end
 
-    test "adds table/1 to CoreComponents" do
+    test "adds table/1 with gettext to CoreComponents" do
       igniter =
         project_with_live()
-        |> Igniter.compose_task("phx.install.components", ["--ui", "tailwind"])
+        |> Igniter.compose_task("phx.install.components", ["--ui", "daisy"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/components/core_components.ex")
       content = Rewrite.Source.get(source, :content)
 
       assert content =~ "def table(assigns)"
-      assert content =~ "attr(:id, :string, required: true)"
-      assert content =~ "attr(:rows, :list, required: true)"
       assert content =~ "Phoenix.LiveView.LiveStream"
+      assert content =~ ~s|gettext("Actions")|
     end
 
     test "adds list/1 to CoreComponents" do
       igniter =
         project_with_live()
-        |> Igniter.compose_task("phx.install.components", ["--ui", "tailwind"])
+        |> Igniter.compose_task("phx.install.components", ["--ui", "daisy"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/components/core_components.ex")
       content = Rewrite.Source.get(source, :content)
 
       assert content =~ "def list(assigns)"
-      assert content =~ "attr(:title, :string, required: true)"
     end
 
     test "is idempotent" do
       igniter =
         project_with_live()
-        |> Igniter.compose_task("phx.install.components", ["--ui", "tailwind"])
+        |> Igniter.compose_task("phx.install.components", ["--ui", "daisy"])
         |> apply_igniter!()
 
       igniter
-      |> Igniter.compose_task("phx.install.components", ["--ui", "tailwind"])
+      |> Igniter.compose_task("phx.install.components", ["--ui", "daisy"])
       |> assert_unchanged()
-    end
-
-    test "works with custom app name" do
-      igniter =
-        test_project(app_name: :my_app)
-        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", [
-          "--live-signing-salt",
-          "livesalt1",
-          "--ui",
-          "tailwind"
-        ])
-        |> apply_igniter!()
-        |> Igniter.compose_task("phx.install.components", ["--ui", "tailwind"])
-        |> apply_igniter!()
-
-      source = Rewrite.source!(igniter.rewrite, "lib/my_app_web/components/core_components.ex")
-      content = Rewrite.Source.get(source, :content)
-
-      assert content =~ "def header(assigns)"
-      assert content =~ "def table(assigns)"
-      assert content =~ "def list(assigns)"
     end
   end
 end

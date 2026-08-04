@@ -1,4 +1,4 @@
-defmodule Mix.Tasks.Phx.Install.Assets.Tailwind.Esbuild do
+defmodule Mix.Tasks.Phx.Install.Assets.Css.Tailwind.Esbuild do
   @shortdoc "Configures Tailwind CSS runner for esbuild"
   @moduledoc """
   Configures Tailwind CSS to run via the `tailwind` hex package (standalone CLI).
@@ -10,9 +10,9 @@ defmodule Mix.Tasks.Phx.Install.Assets.Tailwind.Esbuild do
 
   ## Usage
 
-      mix phx.install.assets.tailwind.esbuild
+      mix phx.install.assets.css.tailwind.esbuild
 
-  This task is typically composed by `mix phx.install.assets.tailwind` rather than called directly.
+  This task is typically composed by `mix phx.install.assets.css.tailwind` rather than called directly.
   """
   use Igniter.Mix.Task
 
@@ -20,7 +20,7 @@ defmodule Mix.Tasks.Phx.Install.Assets.Tailwind.Esbuild do
   def info(_argv, _composing_task) do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
-      example: "mix phx.install.assets.tailwind.esbuild",
+      example: "mix phx.install.assets.css.tailwind.esbuild",
       adds_deps: [{:tailwind, "~> 0.3"}]
     }
   end

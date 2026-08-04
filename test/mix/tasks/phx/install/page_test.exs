@@ -8,21 +8,21 @@ defmodule Mix.Tasks.Phx.Install.PageTest do
 
     test_project(app_name: app_name)
     |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-    |> Igniter.compose_task("phx.install.html")
+    |> Igniter.compose_task("phx.install.html", ["--ui", "tailwind"])
     |> Igniter.compose_task("phx.install.router")
   end
 
   describe "phx.install.page" do
     test "creates PageController module" do
       setup_project()
-      |> Igniter.compose_task("phx.install.page")
+      |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
       |> assert_creates("lib/test_web/controllers/page_controller.ex")
     end
 
     test "PageController has home action" do
       igniter =
         setup_project()
-        |> Igniter.compose_task("phx.install.page")
+        |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/controllers/page_controller.ex")
@@ -35,14 +35,14 @@ defmodule Mix.Tasks.Phx.Install.PageTest do
 
     test "creates PageHTML module" do
       setup_project()
-      |> Igniter.compose_task("phx.install.page")
+      |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
       |> assert_creates("lib/test_web/controllers/page_html.ex")
     end
 
     test "PageHTML embeds templates" do
       igniter =
         setup_project()
-        |> Igniter.compose_task("phx.install.page")
+        |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/controllers/page_html.ex")
@@ -54,14 +54,14 @@ defmodule Mix.Tasks.Phx.Install.PageTest do
 
     test "creates home.html.heex template" do
       setup_project()
-      |> Igniter.compose_task("phx.install.page")
+      |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
       |> assert_creates("lib/test_web/controllers/page_html/home.html.heex")
     end
 
     test "home template has Phoenix content" do
       igniter =
         setup_project()
-        |> Igniter.compose_task("phx.install.page")
+        |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       source =
@@ -77,7 +77,7 @@ defmodule Mix.Tasks.Phx.Install.PageTest do
     test "adds browser scope with root route to router" do
       igniter =
         setup_project()
-        |> Igniter.compose_task("phx.install.page")
+        |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/router.ex")
@@ -91,7 +91,7 @@ defmodule Mix.Tasks.Phx.Install.PageTest do
     test "works with custom app name" do
       igniter =
         setup_project(app_name: :my_app)
-        |> Igniter.compose_task("phx.install.page")
+        |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       assert igniter.rewrite.sources["lib/my_app_web/controllers/page_controller.ex"]
@@ -114,11 +114,11 @@ defmodule Mix.Tasks.Phx.Install.PageTest do
     test "is idempotent" do
       igniter =
         setup_project()
-        |> Igniter.compose_task("phx.install.page")
+        |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
         |> apply_igniter!()
 
       igniter
-      |> Igniter.compose_task("phx.install.page")
+      |> Igniter.compose_task("phx.install.page", ["--ui", "tailwind"])
       |> assert_unchanged()
     end
   end

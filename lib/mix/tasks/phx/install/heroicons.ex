@@ -54,7 +54,8 @@ defmodule Mix.Tasks.Phx.Install.Heroicons do
        depth: 1}
     )
     |> create_heroicons_js()
-    |> append_plugin_to_app_css()
+    |> create_heroicons_css()
+    |> PhxInstall.append_css_import(~s|@import "./phx-heroicons.css";|)
     |> add_icon_component(web_module)
   end
 
@@ -64,31 +65,10 @@ defmodule Mix.Tasks.Phx.Install.Heroicons do
     )
   end
 
-  defp append_plugin_to_app_css(igniter) do
-    path = "assets/css/app.css"
-    plugin_line = ~s|@plugin "../vendor/heroicons";|
+  defp create_heroicons_css(igniter) do
+    content = ~s|@plugin "../vendor/heroicons";\n|
 
-    case Rewrite.source(igniter.rewrite, path) do
-      {:ok, source} ->
-        content = Rewrite.Source.get(source, :content)
-
-        if String.contains?(content, plugin_line) do
-          igniter
-        else
-          updated_content =
-            String.replace(
-              content,
-              ~s|@import "tailwindcss";|,
-              ~s|@import "tailwindcss";\n#{plugin_line}|
-            )
-
-          updated_source = Rewrite.Source.update(source, :content, updated_content)
-          %{igniter | rewrite: Rewrite.update!(igniter.rewrite, updated_source)}
-        end
-
-      {:error, _} ->
-        igniter
-    end
+    Igniter.create_new_file(igniter, "assets/css/phx-heroicons.css", content, on_exists: :skip)
   end
 
   defp add_icon_component(igniter, web_module) do

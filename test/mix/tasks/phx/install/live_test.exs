@@ -21,7 +21,12 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
           "test_secret_key_base_12345678901234567890123456789012"
         ])
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> Igniter.compose_task("phx.install.live", [
+          "--live-signing-salt",
+          "livesalt1",
+          "--ui",
+          "tailwind"
+        ])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "config/config.exs")
@@ -35,7 +40,12 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> Igniter.compose_task("phx.install.live", [
+          "--live-signing-salt",
+          "livesalt1",
+          "--ui",
+          "tailwind"
+        ])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/endpoint.ex")
@@ -50,7 +60,12 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> Igniter.compose_task("phx.install.live", [
+          "--live-signing-salt",
+          "livesalt1",
+          "--ui",
+          "tailwind"
+        ])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web.ex")
@@ -64,7 +79,12 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> Igniter.compose_task("phx.install.live", [
+          "--live-signing-salt",
+          "livesalt1",
+          "--ui",
+          "tailwind"
+        ])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web.ex")
@@ -78,7 +98,12 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> Igniter.compose_task("phx.install.live", [
+          "--live-signing-salt",
+          "livesalt1",
+          "--ui",
+          "tailwind"
+        ])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web.ex")
@@ -91,7 +116,12 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> Igniter.compose_task("phx.install.live", [
+          "--live-signing-salt",
+          "livesalt1",
+          "--ui",
+          "tailwind"
+        ])
         |> apply_igniter!()
 
       source = Rewrite.source!(igniter.rewrite, "lib/test_web/components/core_components.ex")
@@ -108,11 +138,21 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> Igniter.compose_task("phx.install.live", [
+          "--live-signing-salt",
+          "livesalt1",
+          "--ui",
+          "tailwind"
+        ])
         |> apply_igniter!()
 
       igniter
-      |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+      |> Igniter.compose_task("phx.install.live", [
+        "--live-signing-salt",
+        "livesalt1",
+        "--ui",
+        "tailwind"
+      ])
       |> assert_unchanged()
     end
 
@@ -120,7 +160,12 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
       igniter =
         test_project(app_name: :my_app)
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
-        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> Igniter.compose_task("phx.install.live", [
+          "--live-signing-salt",
+          "livesalt1",
+          "--ui",
+          "tailwind"
+        ])
         |> apply_igniter!()
 
       assert igniter.rewrite.sources["lib/my_app_web.ex"]

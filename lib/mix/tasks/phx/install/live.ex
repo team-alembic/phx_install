@@ -30,8 +30,10 @@ defmodule Mix.Tasks.Phx.Install.Live do
       example: "mix phx.install.live",
       adds_deps: [{:phoenix_live_view, "~> 1.0"}],
       schema: [
-        live_signing_salt: :string
+        live_signing_salt: :string,
+        ui: :string
       ],
+      defaults: [ui: "daisy"],
       composes: ["phx.install.html"]
     }
   end
@@ -44,10 +46,11 @@ defmodule Mix.Tasks.Phx.Install.Live do
 
     opts = igniter.args.options
     live_signing_salt = opts[:live_signing_salt] || PhxInstall.random_string(8)
+    ui = opts[:ui] || "daisy"
 
     igniter
     |> Igniter.Project.Deps.add_dep({:phoenix_live_view, "~> 1.0"})
-    |> Igniter.compose_task("phx.install.html")
+    |> Igniter.compose_task("phx.install.html", ["--ui", ui])
     |> add_live_view_config(app_name, endpoint_module, live_signing_salt)
     |> add_socket_to_endpoint(endpoint_module)
     |> add_live_macros_to_web_module(web_module)

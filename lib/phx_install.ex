@@ -37,4 +37,32 @@ defmodule PhxInstall do
     |> Base.encode64()
     |> binary_part(0, length)
   end
+
+  @doc """
+  Appends an `@import` line to `assets/css/app.css`, inserting it before
+  the trailing comment marker. No-op if the import already exists or
+  if `app.css` has not been created yet.
+  """
+  def append_css_import(igniter, import_line) do
+    path = "assets/css/app.css"
+    marker = "/* This file is for your main application CSS */"
+
+    case Rewrite.source(igniter.rewrite, path) do
+      {:ok, source} ->
+        content = Rewrite.Source.get(source, :content)
+
+        if String.contains?(content, import_line) do
+          igniter
+        else
+          updated_content =
+            String.replace(content, marker, "#{import_line}\n#{marker}")
+
+          updated_source = Rewrite.Source.update(source, :content, updated_content)
+          %{igniter | rewrite: Rewrite.update!(igniter.rewrite, updated_source)}
+        end
+
+      {:error, _} ->
+        igniter
+    end
+  end
 end
