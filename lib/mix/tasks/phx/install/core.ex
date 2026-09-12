@@ -243,8 +243,13 @@ defmodule Mix.Tasks.Phx.Install.Core do
       {:code,
        Sourceror.parse_string!("""
        [
-         force_ssl: [rewrite_on: [:x_forwarded_proto]],
-         exclude: [hosts: ["localhost", "127.0.0.1"]]
+         force_ssl: [
+           rewrite_on: [:x_forwarded_proto],
+           exclude: [
+             # paths: ["/health"],
+             hosts: ["localhost", "127.0.0.1"]
+           ]
+         ]
        ]
        """)}
     )

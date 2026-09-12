@@ -119,6 +119,21 @@ defmodule Mix.Tasks.Phx.Install.CoreTest do
       assert content =~ "config :logger, level: :info"
     end
 
+    test "nests exclude inside force_ssl in prod.exs" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.core")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "config/prod.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      # `exclude` is an option of `force_ssl`, not a sibling endpoint key.
+      # Phoenix ignores it entirely when it sits at the top level, which
+      # silently redirects excluded hosts to https.
+      assert content =~ ~r/rewrite_on: \[:x_forwarded_proto\],\s*exclude:/
+    end
+
     test "creates runtime.exs" do
       igniter =
         test_project()
