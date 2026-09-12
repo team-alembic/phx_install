@@ -24,7 +24,7 @@ defmodule Mix.Tasks.Phx.Install.Mailer do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.mailer",
-      adds_deps: [{:swoosh, "~> 1.5"}]
+      adds_deps: [{:swoosh, "~> 1.28"}, {:req, "~> 0.7"}]
     }
   end
 
@@ -39,7 +39,8 @@ defmodule Mix.Tasks.Phx.Install.Mailer do
     router_module = Module.concat(web_module, Router)
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:swoosh, "~> 1.5"})
+    |> Igniter.Project.Deps.add_dep({:swoosh, "~> 1.28"})
+    |> Igniter.Project.Deps.add_dep({:req, "~> 0.7"})
     |> create_mailer_module(app_name, mailer_module)
     |> configure_mailer(app_name, mailer_module)
     |> configure_test_mailer(app_name, mailer_module)

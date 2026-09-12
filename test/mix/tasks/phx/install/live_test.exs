@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
   describe "phx.install.live" do
     test "declares phoenix_live_view dependency" do
       info = Mix.Tasks.Phx.Install.Live.info([], nil)
-      assert {:phoenix_live_view, "~> 1.0"} in info.adds_deps
+      assert {:phoenix_live_view, "~> 1.2"} in info.adds_deps
     end
 
     test "adds live_view config to endpoint" do

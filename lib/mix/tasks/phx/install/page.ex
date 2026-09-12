@@ -34,7 +34,7 @@ defmodule Mix.Tasks.Phx.Install.Page do
     ui = opts[:ui] || "daisy"
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.8"})
     |> create_page_controller(web_module)
     |> create_page_html(web_module)
     |> create_home_template(web_module, ui)

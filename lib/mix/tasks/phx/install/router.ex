@@ -33,7 +33,7 @@ defmodule Mix.Tasks.Phx.Install.Router do
     endpoint_module = Module.concat(web_module, Endpoint)
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.8"})
     |> Igniter.compose_task("phx.install.core")
     |> create_router(web_module)
     |> create_error_json(web_module)

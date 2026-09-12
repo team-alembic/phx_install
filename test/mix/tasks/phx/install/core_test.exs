@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Phx.Install.CoreTest do
   describe "phx.install.core" do
     test "declares phoenix dependency" do
       info = Mix.Tasks.Phx.Install.Core.info([], nil)
-      assert {:phoenix, "~> 1.7"} in info.adds_deps
+      assert {:phoenix, "~> 1.8"} in info.adds_deps
     end
 
     test "creates application module" do

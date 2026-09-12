@@ -40,7 +40,7 @@ defmodule Mix.Tasks.Phx.Install.Html do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.html",
-      adds_deps: [{:phoenix_html, "~> 4.1"}],
+      adds_deps: [{:phoenix_html, "~> 4.3"}, {:lazy_html, ">= 0.1.0", only: :test}],
       schema: [ui: :string],
       defaults: [ui: "daisy"],
       composes: ["phx.install.html.#{ui}"]
@@ -57,8 +57,9 @@ defmodule Mix.Tasks.Phx.Install.Html do
     ui = opts[:ui] || "daisy"
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
-    |> Igniter.Project.Deps.add_dep({:phoenix_html, "~> 4.1"})
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.8"})
+    |> Igniter.Project.Deps.add_dep({:phoenix_html, "~> 4.3"})
+    |> Igniter.Project.Deps.add_dep({:lazy_html, ">= 0.1.0", only: :test})
     |> Igniter.Project.IgniterConfig.add_extension(Igniter.Extensions.Phoenix)
     |> add_html_helpers_to_web_module(web_module, endpoint_module)
     |> add_browser_pipeline_to_router(web_module)
