@@ -78,8 +78,11 @@ defmodule Mix.Tasks.Phx.Install.Html.DaisyTest do
       source = Rewrite.source!(igniter.rewrite, "assets/css/phx-daisy.css")
       content = Rewrite.Source.get(source, :content)
 
-      assert content =~ ~s|@plugin "../vendor/daisyui"|
-      assert content =~ ~s|@plugin "../vendor/daisyui-theme"|
+      assert content =~ ~s|@plugin "daisyui/packages/bundle/daisyui"|
+      assert content =~ ~s|@plugin "daisyui/packages/bundle/daisyui-theme"|
+
+      # The plugin ships as a mix dep now, not a vendored download.
+      refute content =~ "../vendor/daisyui"
       assert content =~ "name: \"dark\""
       assert content =~ "name: \"light\""
       assert content =~ "@custom-variant dark"
@@ -133,6 +136,29 @@ defmodule Mix.Tasks.Phx.Install.Html.DaisyTest do
       content = Rewrite.Source.get(source, :content)
 
       assert content =~ "use MyAppWeb, :html"
+    end
+
+    test "adds daisyui dependency to mix.exs" do
+      igniter =
+        setup_project()
+        |> Igniter.compose_task("phx.install.html", ["--ui", "daisy"])
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "mix.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ ":daisyui"
+      assert content =~ ~s|sparse: "packages/bundle"|
+    end
+
+    test "does not vendor daisyui javascript files" do
+      igniter =
+        setup_project()
+        |> Igniter.compose_task("phx.install.html", ["--ui", "daisy"])
+        |> apply_igniter!()
+
+      refute Map.has_key?(igniter.rewrite.sources, "assets/vendor/daisyui.js")
+      refute Map.has_key?(igniter.rewrite.sources, "assets/vendor/daisyui-theme.js")
     end
   end
 end

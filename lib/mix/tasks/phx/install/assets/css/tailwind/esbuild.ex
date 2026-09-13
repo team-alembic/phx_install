@@ -56,7 +56,8 @@ defmodule Mix.Tasks.Phx.Install.Assets.Css.Tailwind.Esbuild do
            --input=assets/css/app.css
            --output=priv/static/assets/css/app.css
          ),
-         cd: Path.expand("..", __DIR__)
+         cd: Path.expand("..", __DIR__),
+         env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
        ]
        """)}
 

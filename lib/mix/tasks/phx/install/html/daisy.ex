@@ -8,7 +8,7 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
   - Layouts module with inline `app/1`, `flash_group/1`, and `theme_toggle/1`
   - Root HTML layout with theme-switching JavaScript
   - DaisyUI CSS configuration (`assets/css/phx-daisy.css`)
-  - DaisyUI vendor JS files (`assets/vendor/daisyui.js`, `assets/vendor/daisyui-theme.js`)
+  - DaisyUI dependency (sparse checkout of the plugin bundle)
   - Phoenix logo SVG (`priv/static/images/logo.svg`)
 
   ## Usage
@@ -19,14 +19,14 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
   """
   use Igniter.Mix.Task
 
-  @daisyui_version "5.5.19"
-  @daisyui_base_url "https://github.com/saadeghi/daisyui/releases/download/v#{@daisyui_version}"
+  @daisyui_version "5.7.37"
 
   @impl Igniter.Mix.Task
   def info(_argv, _composing_task) do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
-      example: "mix phx.install.html.daisy"
+      example: "mix phx.install.html.daisy",
+      adds_deps: [daisyui_dep()]
     }
   end
 
@@ -41,8 +41,7 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
     |> create_logo_svg()
     |> create_daisy_css()
     |> PhxInstall.append_css_import(~s|@import "./phx-daisy.css";|)
-    |> download_vendor_file("daisyui.js")
-    |> download_vendor_file("daisyui-theme.js")
+    |> Igniter.Project.Deps.add_dep(daisyui_dep())
   end
 
   defp create_core_components(igniter, web_module) do
@@ -610,18 +609,16 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
 
   defp daisy_css_content do
     """
-    /* daisyUI Tailwind Plugin. You can update this file by fetching the latest version with:
-       curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui.js
+    /* daisyUI Tailwind Plugin. The plugin itself is managed by your mix.exs.
        Make sure to look at the daisyUI changelog: https://daisyui.com/docs/changelog/ */
-    @plugin "../vendor/daisyui" {
+    @plugin "daisyui/packages/bundle/daisyui" {
       themes: false;
     }
 
-    /* daisyUI theme plugin. You can update this file by fetching the latest version with:
-      curl -sLO https://github.com/saadeghi/daisyui/releases/latest/download/daisyui-theme.js
+    /* daisyUI theme plugin.
       We ship with two themes, a light one inspired on Phoenix colours and a dark one inspired
       on Elixir colours. Build your own at: https://daisyui.com/theme-generator/ */
-    @plugin "../vendor/daisyui-theme" {
+    @plugin "daisyui/packages/bundle/daisyui-theme" {
       name: "dark";
       default: false;
       prefersdark: true;
@@ -656,7 +653,7 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
       --noise: 0;
     }
 
-    @plugin "../vendor/daisyui-theme" {
+    @plugin "daisyui/packages/bundle/daisyui-theme" {
       name: "light";
       default: true;
       prefersdark: false;
@@ -696,62 +693,13 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
     """
   end
 
-  defp download_vendor_file(igniter, filename) do
-    path = "assets/vendor/#{filename}"
-
-    if vendor_file_exists?(igniter, path) do
-      igniter
-    else
-      fetch_and_create_vendor_file(igniter, path, filename)
-    end
-  end
-
-  defp vendor_file_exists?(igniter, path) do
-    match?({:ok, _}, Rewrite.source(igniter.rewrite, path)) or File.exists?(path)
-  end
-
-  defp fetch_and_create_vendor_file(igniter, path, filename) do
-    url = "#{@daisyui_base_url}/#{filename}"
-
-    case fetch_url(url) do
-      {:ok, body} ->
-        Igniter.create_new_file(igniter, path, body, on_exists: :skip)
-
-      {:error, reason} ->
-        Igniter.add_notice(
-          igniter,
-          """
-          Could not download #{filename} from #{url}: #{reason}
-
-          Please download it manually:
-            curl -sLo #{path} #{url}
-          """
-        )
-    end
-  end
-
-  defp fetch_url(url) do
-    Application.ensure_all_started(:inets)
-    Application.ensure_all_started(:ssl)
-    Application.ensure_all_started(:public_key)
-
-    url_charlist = String.to_charlist(url)
-
-    http_opts = [
-      ssl: [
-        verify: :verify_peer,
-        cacerts: :public_key.cacerts_get(),
-        customize_hostname_check: [
-          match_fun: :public_key.pkix_verify_hostname_match_fun(:https)
-        ]
-      ],
-      autoredirect: true
-    ]
-
-    case :httpc.request(:get, {url_charlist, []}, http_opts, body_format: :binary) do
-      {:ok, {{_, 200, _}, _headers, body}} -> {:ok, body}
-      {:ok, {{_, status, _}, _, _}} -> {:error, "HTTP #{status}"}
-      {:error, reason} -> {:error, inspect(reason)}
-    end
+  defp daisyui_dep do
+    {:daisyui,
+     github: "saadeghi/daisyui",
+     tag: "v#{@daisyui_version}",
+     sparse: "packages/bundle",
+     app: false,
+     compile: false,
+     depth: 1}
   end
 end
