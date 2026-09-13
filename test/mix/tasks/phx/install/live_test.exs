@@ -175,5 +175,54 @@ defmodule Mix.Tasks.Phx.Install.LiveTest do
 
       assert content =~ "def live_view do"
     end
+
+    test "creates colocated CSS and imports it from app.css" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.assets")
+        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "assets/css/phx-colocated.css")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ ~s|@import "phoenix-colocated/test/colocated.css";|
+      assert content =~ ~s|@source "../../_build/dev/phoenix-colocated/test/*/";|
+
+      source = Rewrite.source!(igniter.rewrite, "assets/css/app.css")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ ~s|@import "./phx-colocated.css";|
+    end
+
+    test "configures root_tag_attribute for colocated CSS" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.assets")
+        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "config/config.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ ~s|config :phoenix_live_view, root_tag_attribute: "phx-r"|
+    end
+
+    test "uses the app name in colocated CSS paths" do
+      igniter =
+        test_project(app_name: :my_app)
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.assets")
+        |> Igniter.compose_task("phx.install.live", ["--live-signing-salt", "livesalt1"])
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "assets/css/phx-colocated.css")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ "phoenix-colocated/my_app/colocated.css"
+      assert content =~ "_build/dev/phoenix-colocated/my_app/*/"
+    end
   end
 end
