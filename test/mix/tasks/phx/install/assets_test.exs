@@ -91,7 +91,22 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
       assert content =~ "tailwind:"
     end
 
-    test "configures live_reload in dev.exs" do
+    test "configures live_reload in runtime.exs behind a dev guard" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.assets")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "config/runtime.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ "live_reload:"
+      assert content =~ "patterns:"
+      assert content =~ "if config_env() == :dev do"
+    end
+
+    test "does not configure live_reload in dev.exs" do
       igniter =
         test_project()
         |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
@@ -101,8 +116,37 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
       source = Rewrite.source!(igniter.rewrite, "config/dev.exs")
       content = Rewrite.Source.get(source, :content)
 
-      assert content =~ "live_reload:"
-      assert content =~ "patterns:"
+      refute content =~ "live_reload:"
+    end
+
+    test "places the dev block before the prod block in runtime.exs" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.assets")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "config/runtime.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      dev_at = :binary.match(content, "if config_env() == :dev do") |> elem(0)
+      prod_at = :binary.match(content, "if config_env() == :prod do") |> elem(0)
+
+      assert dev_at < prod_at
+    end
+
+    test "is idempotent — re-running does not duplicate the dev block" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.assets")
+        |> Igniter.compose_task("phx.install.assets.live_reload")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "config/runtime.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      assert length(String.split(content, "live_reload:")) == 2
     end
 
     test "adds asset aliases to mix.exs" do
@@ -225,7 +269,7 @@ defmodule Mix.Tasks.Phx.Install.AssetsTest do
 
       assert Map.has_key?(igniter.rewrite.sources, "priv/static/robots.txt")
 
-      source = Rewrite.source!(igniter.rewrite, "config/dev.exs")
+      source = Rewrite.source!(igniter.rewrite, "config/runtime.exs")
       content = Rewrite.Source.get(source, :content)
 
       assert content =~ "live_reload:"
