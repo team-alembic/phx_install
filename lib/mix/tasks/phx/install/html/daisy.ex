@@ -74,7 +74,7 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
 
       * [Heroicons](https://heroicons.com) - see `icon/1` for usage.
 
-      * [Phoenix.Component](https://hexdocs.pm/phoenix_live_view/Phoenix.Component.html) -
+      * [Phoenix.Component](https://phoenix-live-view.hexdocs.pm/Phoenix.Component.html) -
         the component system used by Phoenix. Some components, such as `<.link>`
         and `<.form>`, are defined there.
 
@@ -432,7 +432,7 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
               <.theme_toggle />
             </li>
             <li>
-              <a href="https://hexdocs.pm/phoenix/overview.html" class="btn btn-primary">
+              <a href="https://phoenix.hexdocs.pm/overview.html" class="btn btn-primary">
                 Get Started <span aria-hidden="true">&rarr;</span>
               </a>
             </li>
@@ -470,7 +470,10 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
           id="client-error"
           kind={:error}
           title={gettext("We can't find the internet")}
-          phx-disconnected={show(".phx-client-error #client-error") |> JS.remove_attribute("hidden")}
+          phx-disconnected={
+            show(".phx-client-error #client-error")
+            |> JS.remove_attribute("hidden", to: ".phx-client-error #client-error")
+          }
           phx-connected={hide("#client-error") |> JS.set_attribute({"hidden", ""})}
           hidden
         >
@@ -482,7 +485,10 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
           id="server-error"
           kind={:error}
           title={gettext("Something went wrong!")}
-          phx-disconnected={show(".phx-server-error #server-error") |> JS.remove_attribute("hidden")}
+          phx-disconnected={
+            show(".phx-server-error #server-error")
+            |> JS.remove_attribute("hidden", to: ".phx-server-error #server-error")
+          }
           phx-connected={hide("#server-error") |> JS.set_attribute({"hidden", ""})}
           hidden
         >
@@ -501,7 +507,7 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
     def theme_toggle(assigns) do
       ~H\"\"\"
       <div class="card relative flex flex-row items-center border-2 border-base-300 bg-base-300 rounded-full">
-        <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 transition-[left]" />
+        <div class="absolute w-1/3 h-full rounded-full border-1 border-base-200 bg-base-100 brightness-200 left-0 [[data-theme=light]_&]:left-1/3 [[data-theme=dark]_&]:left-2/3 [[data-theme-source=system]_&]:!left-0 transition-[left]" />
 
         <button
           class="flex p-2 cursor-pointer w-1/3"
@@ -554,13 +560,17 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
         </script>
         <script>
           (() => {
+            const systemTheme = () => matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
             const setTheme = (theme) => {
               if (theme === "system") {
                 localStorage.removeItem("phx:theme");
-                document.documentElement.removeAttribute("data-theme");
+                document.documentElement.setAttribute("data-theme", systemTheme());
+                document.documentElement.setAttribute("data-theme-source", "system");
               } else {
                 localStorage.setItem("phx:theme", theme);
                 document.documentElement.setAttribute("data-theme", theme);
+                document.documentElement.setAttribute("data-theme-source", "user");
               }
             };
             if (!document.documentElement.hasAttribute("data-theme")) {
@@ -568,6 +578,12 @@ defmodule Mix.Tasks.Phx.Install.Html.Daisy do
             }
             window.addEventListener("storage", (e) => e.key === "phx:theme" && setTheme(e.newValue || "system"));
             window.addEventListener("phx:set-theme", (e) => setTheme(e.target.dataset.phxTheme));
+
+            matchMedia("(prefers-color-scheme: dark)").addEventListener("change", () => {
+              if (document.documentElement.getAttribute("data-theme-source") === "system") {
+                document.documentElement.setAttribute("data-theme", systemTheme());
+              }
+            });
           })();
         </script>
       </head>

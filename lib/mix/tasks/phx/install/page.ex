@@ -242,7 +242,7 @@ defmodule Mix.Tasks.Phx.Install.Page do
           <div class="w-full sm:w-auto">
             <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
               <a
-                href="https://hexdocs.pm/phoenix/overview.html"
+                href="https://phoenix.hexdocs.pm/overview.html"
                 class="group relative rounded-2xl px-6 py-4 text-sm font-semibold leading-6 text-zinc-900 sm:py-6"
               >
                 <span class="absolute inset-0 rounded-2xl bg-zinc-100 transition group-hover:bg-zinc-200 sm:group-hover:scale-105">
@@ -449,7 +449,7 @@ defmodule Mix.Tasks.Phx.Install.Page do
           <div class="w-full sm:w-auto">
             <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-4 sm:grid-cols-3">
               <a
-                href="https://hexdocs.pm/phoenix/overview.html"
+                href="https://phoenix.hexdocs.pm/overview.html"
                 class="group relative rounded-box px-6 py-4 text-sm font-semibold leading-6 sm:py-6"
               >
                 <span class="absolute inset-0 rounded-box bg-base-200 transition group-hover:bg-base-300 sm:group-hover:scale-105">
