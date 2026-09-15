@@ -6,12 +6,25 @@ defmodule Mix.Tasks.Phx.Install.EctoTest do
   describe "phx.install.ecto" do
     test "declares ecto_sql dependency" do
       info = Mix.Tasks.Phx.Install.Ecto.info([], nil)
-      assert {:ecto_sql, "~> 3.10"} in info.adds_deps
+      assert {:ecto_sql, "~> 3.14"} in info.adds_deps
     end
 
     test "declares postgrex dependency by default" do
       info = Mix.Tasks.Phx.Install.Ecto.info([], nil)
       assert Enum.any?(info.adds_deps, fn dep -> elem(dep, 0) == :postgrex end)
+    end
+
+    test "adds phoenix_ecto dependency to mix.exs" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.ecto")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "mix.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ "phoenix_ecto"
     end
 
     test "creates Repo module" do

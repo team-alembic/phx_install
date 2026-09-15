@@ -26,7 +26,7 @@ defmodule PhxInstall.MixProject do
 
   defp deps do
     [
-      {:igniter, "~> 0.7 and >= 0.7.3"},
+      {:igniter, "~> 0.8 and >= 0.8.4"},
 
       # dev/text
       {:credo, "~> 1.0", only: [:dev, :test], runtime: false},
@@ -36,7 +36,7 @@ defmodule PhxInstall.MixProject do
       {:ex_doc, "~> 0.34", only: [:dev, :test], runtime: false},
       {:git_ops, "~> 2.0", only: [:dev, :test], runtime: false},
       {:mix_audit, "~> 2.0", only: [:dev, :test], runtime: false},
-      {:phx_new, "~> 1.7", only: :test, runtime: false}
+      {:phx_new, "~> 1.8", only: :test, runtime: false}
     ]
   end
 

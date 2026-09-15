@@ -41,6 +41,12 @@ defmodule Mix.Tasks.Phx.Install.Html.DaisyTest do
       assert content =~ "def app(assigns)"
       assert content =~ "def flash_group(assigns)"
       assert content =~ "def theme_toggle(assigns)"
+      assert content =~ "[[data-theme-source=system]_&]:!left-0"
+
+      # `JS.remove_attribute/2` defaults to the event target, which is not
+      # the flash element here, so the selector has to be explicit.
+      assert content =~ ~s|JS.remove_attribute("hidden", to: ".phx-client-error #client-error")|
+      assert content =~ ~s|JS.remove_attribute("hidden", to: ".phx-server-error #server-error")|
       assert content =~ "navbar"
       assert content =~ "client-error"
       assert content =~ "server-error"
@@ -59,6 +65,13 @@ defmodule Mix.Tasks.Phx.Install.Html.DaisyTest do
 
       assert content =~ "phx:theme"
       assert content =~ "data-theme"
+
+      # "system" now resolves to a concrete theme and records where the
+      # choice came from, so the toggle can highlight the system option.
+      assert content =~ ~s|data-theme-source", "system"|
+      assert content =~ ~s|data-theme-source", "user"|
+      assert content =~ "prefers-color-scheme: dark"
+      refute content =~ ~s|removeAttribute("data-theme")|
       assert content =~ "setTheme"
     end
 
@@ -78,8 +91,11 @@ defmodule Mix.Tasks.Phx.Install.Html.DaisyTest do
       source = Rewrite.source!(igniter.rewrite, "assets/css/phx-daisy.css")
       content = Rewrite.Source.get(source, :content)
 
-      assert content =~ ~s|@plugin "../vendor/daisyui"|
-      assert content =~ ~s|@plugin "../vendor/daisyui-theme"|
+      assert content =~ ~s|@plugin "daisyui/packages/bundle/daisyui"|
+      assert content =~ ~s|@plugin "daisyui/packages/bundle/daisyui-theme"|
+
+      # The plugin ships as a mix dep now, not a vendored download.
+      refute content =~ "../vendor/daisyui"
       assert content =~ "name: \"dark\""
       assert content =~ "name: \"light\""
       assert content =~ "@custom-variant dark"
@@ -133,6 +149,29 @@ defmodule Mix.Tasks.Phx.Install.Html.DaisyTest do
       content = Rewrite.Source.get(source, :content)
 
       assert content =~ "use MyAppWeb, :html"
+    end
+
+    test "adds daisyui dependency to mix.exs" do
+      igniter =
+        setup_project()
+        |> Igniter.compose_task("phx.install.html", ["--ui", "daisy"])
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "mix.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ ":daisyui"
+      assert content =~ ~s|sparse: "packages/bundle"|
+    end
+
+    test "does not vendor daisyui javascript files" do
+      igniter =
+        setup_project()
+        |> Igniter.compose_task("phx.install.html", ["--ui", "daisy"])
+        |> apply_igniter!()
+
+      refute Map.has_key?(igniter.rewrite.sources, "assets/vendor/daisyui.js")
+      refute Map.has_key?(igniter.rewrite.sources, "assets/vendor/daisyui-theme.js")
     end
   end
 end

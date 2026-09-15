@@ -6,7 +6,21 @@ defmodule Mix.Tasks.Phx.Install.MailerTest do
   describe "phx.install.mailer" do
     test "declares swoosh dependency" do
       info = Mix.Tasks.Phx.Install.Mailer.info([], nil)
-      assert {:swoosh, "~> 1.5"} in info.adds_deps
+      assert {:swoosh, "~> 1.28"} in info.adds_deps
+    end
+
+    test "adds req dependency to mix.exs for the Swoosh API client" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.router")
+        |> Igniter.compose_task("phx.install.mailer")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "mix.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ ":req"
     end
 
     test "creates Mailer module" do

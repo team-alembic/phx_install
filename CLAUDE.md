@@ -46,7 +46,7 @@ Each orchestrator dynamically composes `phx.install.{area}.#{variant}` based on 
 
 ### CSS Composition
 
-Each task that needs CSS creates its own file (e.g. `assets/css/phx-tailwind.css`, `assets/css/phx-daisy.css`, `assets/css/phx-heroicons.css`) and appends an `@import` line to `assets/css/app.css`. Tailwind v4 flattens imports before processing directives, so `@plugin`/`@source`/`@custom-variant` in imported files work correctly.
+Each task that needs CSS creates its own file (e.g. `assets/css/phx-tailwind.css`, `assets/css/phx-daisy.css`, `assets/css/phx-heroicons.css`, `assets/css/phx-colocated.css`) and appends an `@import` line to `assets/css/app.css`. Tailwind v4 flattens imports before processing directives, so `@plugin`/`@source`/`@custom-variant` in imported files work correctly.
 
 ### Task Pattern
 

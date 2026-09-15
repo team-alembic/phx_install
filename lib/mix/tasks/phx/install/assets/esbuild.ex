@@ -374,7 +374,7 @@ defmodule Mix.Tasks.Phx.Install.Assets.Esbuild do
       "config.exs",
       :esbuild,
       [:version],
-      "0.25.4"
+      "0.28.2"
     )
     |> Igniter.Project.Config.configure(
       "config.exs",

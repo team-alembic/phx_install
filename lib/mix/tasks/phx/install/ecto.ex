@@ -33,7 +33,7 @@ defmodule Mix.Tasks.Phx.Install.Ecto do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.ecto",
-      adds_deps: [{:ecto_sql, "~> 3.10"}, adapter_dep],
+      adds_deps: [{:ecto_sql, "~> 3.14"}, {:phoenix_ecto, "~> 4.7"}, adapter_dep],
       schema: [
         adapter: :string
       ],
@@ -55,7 +55,8 @@ defmodule Mix.Tasks.Phx.Install.Ecto do
     {adapter_module, adapter_dep} = adapter_config(adapter)
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:ecto_sql, "~> 3.10"})
+    |> Igniter.Project.Deps.add_dep({:ecto_sql, "~> 3.14"})
+    |> Igniter.Project.Deps.add_dep({:phoenix_ecto, "~> 4.7"})
     |> Igniter.Project.Deps.add_dep(adapter_dep)
     |> create_repo_module(app_name, app_module, adapter_module)
     |> configure_ecto_repos(app_name, repo_module)

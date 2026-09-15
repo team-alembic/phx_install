@@ -10,6 +10,8 @@ defmodule Mix.Tasks.Phx.Install.Live do
   - Adds `live_view` and `live_component` macros to the web module
   - Adds `Phoenix.LiveView.Router` import to router macro
   - Adds `alias Phoenix.LiveView.JS` and `show/2`, `hide/2` helpers to CoreComponents
+  - Adds colocated CSS support (`assets/css/phx-colocated.css` and the
+    `root_tag_attribute` config used by `Phoenix.LiveView.ColocatedCSS`)
 
   ## Usage
 
@@ -28,7 +30,7 @@ defmodule Mix.Tasks.Phx.Install.Live do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.live",
-      adds_deps: [{:phoenix_live_view, "~> 1.0"}],
+      adds_deps: [{:phoenix_live_view, "~> 1.2"}],
       schema: [
         live_signing_salt: :string,
         ui: :string
@@ -49,7 +51,7 @@ defmodule Mix.Tasks.Phx.Install.Live do
     ui = opts[:ui] || "daisy"
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:phoenix_live_view, "~> 1.0"})
+    |> Igniter.Project.Deps.add_dep({:phoenix_live_view, "~> 1.2"})
     |> Igniter.compose_task("phx.install.html", ["--ui", ui])
     |> add_live_view_config(app_name, endpoint_module, live_signing_salt)
     |> add_socket_to_endpoint(endpoint_module)
@@ -57,6 +59,29 @@ defmodule Mix.Tasks.Phx.Install.Live do
     |> add_live_router_import(web_module)
     |> add_js_helpers_to_core_components(web_module)
     |> upgrade_to_live_flash(web_module)
+    |> configure_colocated_css(app_name)
+  end
+
+  # Colocated CSS (LiveView 1.1+) writes extracted styles into
+  # `_build/<env>/phoenix-colocated/<app>`. Tailwind needs to import the
+  # generated stylesheet and watch the directory for changes in dev.
+  defp configure_colocated_css(igniter, app_name) do
+    content = """
+    @import "phoenix-colocated/#{app_name}/colocated.css";
+
+    /* Required for Tailwind to automatically pick up changes in colocated CSS files in dev */
+    @source "../../_build/dev/phoenix-colocated/#{app_name}/*/";
+    """
+
+    igniter
+    |> Igniter.create_new_file("assets/css/phx-colocated.css", content, on_exists: :skip)
+    |> PhxInstall.append_css_import(~s|@import "./phx-colocated.css";|)
+    |> Igniter.Project.Config.configure(
+      "config.exs",
+      :phoenix_live_view,
+      [:root_tag_attribute],
+      "phx-r"
+    )
   end
 
   defp add_live_view_config(igniter, app_name, endpoint_module, live_signing_salt) do

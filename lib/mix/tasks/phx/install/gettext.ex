@@ -24,7 +24,7 @@ defmodule Mix.Tasks.Phx.Install.Gettext do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.gettext",
-      adds_deps: [{:gettext, "~> 0.26"}]
+      adds_deps: [{:gettext, "~> 1.0"}]
     }
   end
 
@@ -34,7 +34,7 @@ defmodule Mix.Tasks.Phx.Install.Gettext do
     web_module = Igniter.Libs.Phoenix.web_module(igniter)
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:gettext, "~> 0.26"})
+    |> Igniter.Project.Deps.add_dep({:gettext, "~> 1.0"})
     |> create_gettext_module(app_name, web_module)
     |> create_errors_pot()
     |> create_errors_po()
@@ -52,7 +52,7 @@ defmodule Mix.Tasks.Phx.Install.Gettext do
       @moduledoc \"""
       A module providing Internationalization with a gettext-based API.
 
-      By using [Gettext](https://hexdocs.pm/gettext), your module compiles translations
+      By using [Gettext](https://gettext.hexdocs.pm), your module compiles translations
       that you can use in your application. To use this Gettext backend module,
       call `use Gettext` and pass it as an option:
 
@@ -69,7 +69,7 @@ defmodule Mix.Tasks.Phx.Install.Gettext do
           # Domain-based translation
           dgettext("errors", "Here is the error message to translate")
 
-      See the [Gettext Docs](https://hexdocs.pm/gettext) for detailed usage.
+      See the [Gettext Docs](https://gettext.hexdocs.pm) for detailed usage.
       \"""
       use Gettext.Backend, otp_app: #{inspect(app_name)}
       """,

@@ -6,7 +6,21 @@ defmodule Mix.Tasks.Phx.Install.HtmlTest do
   describe "phx.install.html" do
     test "declares phoenix_html dependency" do
       info = Mix.Tasks.Phx.Install.Html.info([], nil)
-      assert {:phoenix_html, "~> 4.1"} in info.adds_deps
+      assert {:phoenix_html, "~> 4.3"} in info.adds_deps
+    end
+
+    test "adds lazy_html test dependency to mix.exs" do
+      igniter =
+        test_project()
+        |> Igniter.compose_task("phx.install.endpoint", ["--session-signing-salt", "sessionsalt"])
+        |> Igniter.compose_task("phx.install.router")
+        |> Igniter.compose_task("phx.install.html")
+        |> apply_igniter!()
+
+      source = Rewrite.source!(igniter.rewrite, "mix.exs")
+      content = Rewrite.Source.get(source, :content)
+
+      assert content =~ "lazy_html"
     end
 
     test "creates CoreComponents module" do

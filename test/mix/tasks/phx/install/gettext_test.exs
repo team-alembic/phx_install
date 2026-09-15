@@ -6,7 +6,7 @@ defmodule Mix.Tasks.Phx.Install.GettextTest do
   describe "phx.install.gettext" do
     test "declares gettext dependency" do
       info = Mix.Tasks.Phx.Install.Gettext.info([], nil)
-      assert {:gettext, "~> 0.26"} in info.adds_deps
+      assert {:gettext, "~> 1.0"} in info.adds_deps
     end
 
     test "creates Gettext backend module" do

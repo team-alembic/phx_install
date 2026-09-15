@@ -22,7 +22,7 @@ defmodule Mix.Tasks.Phx.Install.Core do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.core",
-      adds_deps: [{:phoenix, "~> 1.7"}],
+      adds_deps: [{:phoenix, "~> 1.8"}],
       schema: [
         signing_salt: :string,
         secret_key_base_dev: :string,
@@ -49,7 +49,7 @@ defmodule Mix.Tasks.Phx.Install.Core do
     application_module = Module.concat(app_module, Application)
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.7"})
+    |> Igniter.Project.Deps.add_dep({:phoenix, "~> 1.8"})
     |> add_phoenix_extension()
     |> set_application_mod(application_module)
     |> create_application_module(app_name, app_module, web_module, endpoint_module)
@@ -243,8 +243,13 @@ defmodule Mix.Tasks.Phx.Install.Core do
       {:code,
        Sourceror.parse_string!("""
        [
-         force_ssl: [rewrite_on: [:x_forwarded_proto]],
-         exclude: [hosts: ["localhost", "127.0.0.1"]]
+         force_ssl: [
+           rewrite_on: [:x_forwarded_proto],
+           exclude: [
+             # paths: ["/health"],
+             hosts: ["localhost", "127.0.0.1"]
+           ]
+         ]
        ]
        """)}
     )

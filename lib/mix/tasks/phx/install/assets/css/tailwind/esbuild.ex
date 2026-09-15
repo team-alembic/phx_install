@@ -21,7 +21,7 @@ defmodule Mix.Tasks.Phx.Install.Assets.Css.Tailwind.Esbuild do
     %Igniter.Mix.Task.Info{
       group: :phoenix,
       example: "mix phx.install.assets.css.tailwind.esbuild",
-      adds_deps: [{:tailwind, "~> 0.3"}]
+      adds_deps: [{:tailwind, "~> 0.5"}]
     }
   end
 
@@ -32,7 +32,7 @@ defmodule Mix.Tasks.Phx.Install.Assets.Css.Tailwind.Esbuild do
     endpoint_module = Module.concat(web_module, Endpoint)
 
     igniter
-    |> Igniter.Project.Deps.add_dep({:tailwind, "~> 0.3"}, on_exists: :skip)
+    |> Igniter.Project.Deps.add_dep({:tailwind, "~> 0.5"}, on_exists: :skip)
     |> set_runtime_dep()
     |> configure_tailwind(app_name)
     |> configure_watcher(app_name, endpoint_module)
@@ -56,12 +56,13 @@ defmodule Mix.Tasks.Phx.Install.Assets.Css.Tailwind.Esbuild do
            --input=assets/css/app.css
            --output=priv/static/assets/css/app.css
          ),
-         cd: Path.expand("..", __DIR__)
+         cd: Path.expand("..", __DIR__),
+         env: %{"NODE_PATH" => [Path.expand("../deps", __DIR__), Mix.Project.build_path()]}
        ]
        """)}
 
     igniter
-    |> Igniter.Project.Config.configure("config.exs", :tailwind, [:version], "4.1.12")
+    |> Igniter.Project.Config.configure("config.exs", :tailwind, [:version], "4.3.3")
     |> Igniter.Project.Config.configure(
       "config.exs",
       :tailwind,

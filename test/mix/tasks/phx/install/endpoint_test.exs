@@ -7,10 +7,11 @@ defmodule Mix.Tasks.Phx.Install.EndpointTest do
     test "declares required dependencies" do
       info = Mix.Tasks.Phx.Install.Endpoint.info([], nil)
 
-      assert {:bandit, "~> 1.5"} in info.adds_deps
-      assert {:dns_cluster, "~> 0.1"} in info.adds_deps
-      assert {:telemetry_metrics, "~> 1.0"} in info.adds_deps
-      assert {:telemetry_poller, "~> 1.0"} in info.adds_deps
+      assert {:bandit, "~> 1.12"} in info.adds_deps
+      assert {:dns_cluster, "~> 0.3"} in info.adds_deps
+      assert {:telemetry_metrics, "~> 1.2"} in info.adds_deps
+      assert {:telemetry_poller, "~> 1.3"} in info.adds_deps
+      assert {:jason, "~> 1.4"} in info.adds_deps
     end
 
     test "creates web module" do
